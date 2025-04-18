@@ -1,17 +1,34 @@
 import React from "react";
-import Navbar from "./components/Navbar";
-import Heading from "./components/heading"
+import HomePage from "./pages/Home.jsx";
+import Navbar from "./components/Navbar.jsx";
+import Heading from "./components/heading.jsx";
+import Footer from "./components/Footer.jsx";
+import RestaurantProfiles from "./pages/RestaurantProfiles.jsx";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 function App() {
   return (
-    <div>
-      <Heading />
-      <Navbar />
-      <div className="p-8">
-        <h1 className="text-4xl font-bold">Welcome to MyApp</h1>
-        {/* Other content goes here */}
+    <Router>
+      <div>
+        <header>
+          <Heading />
+          <Navbar />
+        </header>
+        <main>
+          <Routes>
+            <Route exact path="/" element={<HomePage />}></Route>
+            <Route
+              exact
+              path="/RestaurantProfiles"
+              element={<RestaurantProfiles />}
+            ></Route>
+          </Routes>
+        </main>
+        <footer>
+          <Footer />
+        </footer>
       </div>
-    </div>
+    </Router>
   );
 }
 

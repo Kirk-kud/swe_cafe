@@ -2,8 +2,7 @@ import React from "react";
 
 const LocationBar = () => {
   return (
-    <div className="flex items-center justify-between bg-white border-b border-gray-200 w-full">
-      {/* Left side - Location */}
+    <div className="flex items-center justify-between  w-full">
       <div className="flex items-center py-2 px-4">
         <div className="flex items-center mr-2">
           <svg
