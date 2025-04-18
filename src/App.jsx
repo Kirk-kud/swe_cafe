@@ -4,7 +4,9 @@ import Navbar from "./components/Navbar.jsx";
 import Heading from "./components/heading.jsx";
 import Footer from "./components/Footer.jsx";
 import RestaurantProfiles from "./pages/RestaurantProfiles.jsx";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 
 function App() {
   return (
@@ -16,6 +18,9 @@ function App() {
         </header>
         <main>
           <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route exact path="/" element={<HomePage />}></Route>
             <Route
               exact
