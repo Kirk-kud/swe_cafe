@@ -1,7 +1,7 @@
-import { ChevronLeft, ChevronRight, Clipboard, DollarSign, Search, Truck, User, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clipboard, DollarSign, Search, Truck, User, Users } from "lucide-react";
 import { useState } from 'react';
 
-export default function AshesiEatsDashboard() {
+const AshesiEatsDashboard = () => {
   const [activeTab, setActiveTab] = useState('Dashboard');
   
   // Sample data for the charts
@@ -344,3 +344,5 @@ export default function AshesiEatsDashboard() {
     </div>
   );
 }
+
+export default AshesiEatsDashboard;

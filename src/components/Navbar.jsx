@@ -16,7 +16,7 @@ const Navbar = () => {
             <Link to="/">Home</Link>
           </li>
           <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
-            Browse Menu
+            <Link to="/AshesiEatsDashboard">Dashboard</Link>
           </li>
           <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
             <Link to="/RestaurantProfiles">Restaurants</Link>
