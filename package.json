@@ -11,7 +11,10 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
+<<<<<<< HEAD
     "dotenv": "^16.5.0",
+=======
+>>>>>>> 1e68a6934cea342a7730a567caf04d097a7a0ba3
     "express": "^5.1.0",
     "lucide-react": "^0.503.0",
     "react": "^19.0.0",

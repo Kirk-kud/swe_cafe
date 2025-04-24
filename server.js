@@ -15,13 +15,13 @@ const corsOptions = {
 // Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Test route
-app.get("/", (req, res) => {
-  res.json({ message: "Hello from the server!" });
-});
+// // Test route
+// app.get("/", (req, res) => {
+//   res.json({ message: "Hello from the server!" });
+// });
 
 // Example for Express backend
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
     res.json({ message: "👋 Welcome back to AshesiEats!" });
   });
 
