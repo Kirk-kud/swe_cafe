@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import axios from 'axios'; // <-- Added axios
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -7,7 +8,23 @@ const Login = () => {
     password: '',
   });
   const [error, setError] = useState('');
+  const [welcomeMessage, setWelcomeMessage] = useState(''); // <-- New state for welcome message
   const navigate = useNavigate();
+
+  // Fetch welcome message when component mounts
+  useEffect(() => {
+    const fetchWelcomeMessage = async () => {
+      try {
+        const res = await axios.get('/api/welcome'); // Replace with your real API endpoint
+        setWelcomeMessage(res.data.message);
+      } catch (err) {
+        console.error("Failed to fetch welcome message:", err);
+        setWelcomeMessage("Welcome to AshesiEats!"); // Fallback message
+      }
+    };
+
+    fetchWelcomeMessage();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,16 +37,14 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     try {
-      // TODO: Implement actual login logic here
       console.log('Login attempt:', formData);
-      
-      // For admin login
+
+      // Basic mock logic
       if (formData.email === 'admin@ashesi.edu.gh') {
         navigate('/admin');
       } else {
-        // For regular user login
         navigate('/');
       }
     } catch (err) {
@@ -42,13 +57,13 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Welcome to AshesiEats
+            {welcomeMessage || 'Welcome to AshesiEats'}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Sign in to your account
           </p>
         </div>
-        
+
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
             <p className="text-red-700">{error}</p>
@@ -128,4 +143,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;
