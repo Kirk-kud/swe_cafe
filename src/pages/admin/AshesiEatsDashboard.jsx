@@ -49,7 +49,7 @@ const AshesiEatsDashboard = () => {
   const menuItems = [
     { name: 'Dashboard', icon: '📊' },
     { name: 'Orders', icon: '📋' },
-    { name: 'Restaurants', icon: '🍽️' },
+    { name: 'Restaurants', icon: '🍽️', link: '/CafeteriaManagement' },
     { name: 'Delivery', icon: '🚚' },
     { name: 'Students', icon: '👥' },
     { name: 'Payments', icon: '💰' },
@@ -143,7 +143,15 @@ const AshesiEatsDashboard = () => {
                 className={`flex items-center px-5 py-3 cursor-pointer hover:bg-red-800 ${activeTab === item.name ? 'bg-red-800' : ''}`}
                 onClick={() => setActiveTab(item.name)}
               >
-                <span className="mr-3">{item.icon}</span> {item.name}
+                {item.link ? (
+                  <a href={item.link} className="flex items-center w-full">
+                    <span className="mr-3">{item.icon}</span> {item.name}
+                  </a>
+                ) : (
+                  <>
+                    <span className="mr-3">{item.icon}</span> {item.name}
+                  </>
+                )}
               </li>
             ))}
           </ul>
@@ -323,7 +331,9 @@ const AshesiEatsDashboard = () => {
                       <td className="p-3">{restaurant.revenue}</td>
                       <td className="p-3">{restaurant.rating}</td>
                       <td className="p-3">
-                        <button className="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs">View</button>
+                        <a href="/CafeteriaManagement">
+                          <button className="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs">Manage</button>
+                        </a>
                       </td>
                     </tr>
                   ))}
