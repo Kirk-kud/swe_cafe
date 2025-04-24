@@ -1,5 +1,6 @@
 import React from "react";
 import RestaurantCard from "../components/Restaurant_Card.jsx";
+import Api from "../components/Api.jsx";
 import testImage from "../assets/test.png";
 import testImage2 from "../assets/test2.png";
 import mainImage from "../assets/dinning.png";
@@ -42,6 +43,7 @@ const HomePage = () => {
           <RestaurantCard text="Hallmark" color="white" image={testImage2} />
           <RestaurantCard text="Hallmark" color="white" image={testImage2} />
         </div>
+        <Api />
       </div>
     </div>
   );
