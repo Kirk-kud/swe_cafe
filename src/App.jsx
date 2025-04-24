@@ -7,6 +7,7 @@ import RestaurantProfiles from "./pages/RestaurantProfiles.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import AshesiEatsDashboard from "./pages/admin/AshesiEatsDashboard.jsx"
+import CafeteriaManagement from "./pages/admin/CafeteriaManagement.jsx";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 function App() {
@@ -39,6 +40,11 @@ function App() {
               exact
               path="/AshesiEatsDashboard"
               element={<AshesiEatsDashboard />}
+            ></Route>
+            <Route
+              exact
+              path="/CafeteriaManagement"
+              element={<CafeteriaManagement />}
             ></Route>
           </Routes>
         </main>
