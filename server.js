@@ -25,16 +25,31 @@ app.use(cors(corsOptions));
 // Create database connection pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 3307,
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
+  password: process.env.DB_PASSWORD || 'Password@1',
   database: process.env.DB_NAME || 'AshesiEats',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
 
+// Test database connection
+async function testConnection() {
+  try {
+    const connection = await pool.getConnection();
+    console.log('✅ Successfully connected to MySQL database!');
+    connection.release();
+  } catch (error) {
+    console.error('❌ Error connecting to MySQL:', error);
+  }
+}
+
+// Test the connection when server starts
+testConnection();
+
 // JWT secret key
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'ashesi-eats-default-secret-key';
 
 // Middleware to verify JWT token
 const authenticateToken = async (req, res, next) => {
@@ -164,6 +179,40 @@ app.get('/api/profile', authenticateToken, (req, res) => {
 app.get('/api', (req, res) => {
     res.json({ message: "👋 Welcome back to AshesiEats!" });
   });
+
+// Get restaurant details
+app.get('/api/restaurants/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get restaurant details
+    const [restaurants] = await pool.execute(
+      'SELECT * FROM Restaurants WHERE restaurant_id = ?',
+      [id]
+    );
+
+    if (restaurants.length === 0) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+
+    // Get menu items for this restaurant
+    const [menuItems] = await pool.execute(
+      'SELECT * FROM MenuItems WHERE restaurant_id = ?',
+      [id]
+    );
+
+    // Combine restaurant details with menu items
+    const restaurantData = {
+      ...restaurants[0],
+      menu: menuItems
+    };
+
+    res.json(restaurantData);
+  } catch (error) {
+    console.error('Error fetching restaurant:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Start server
 app.listen(8080, () => {
