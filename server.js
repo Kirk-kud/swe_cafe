@@ -78,14 +78,15 @@ const authenticateToken = async (req, res, next) => {
 // Register new user
 app.post('/api/auth/register', async (req, res) => {
   try {
+    // 1. Get user data from request body
     const { fullName, email, password, studentId, phoneNumber } = req.body;
 
-    // Validate input
+    // 2. Validate required fields
     if (!fullName || !email || !password || !studentId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Check if user already exists
+    // 3. Check if user already exists
     const [existingUsers] = await pool.execute(
       'SELECT * FROM Users WHERE email = ? OR student_id = ?',
       [email, studentId]
@@ -95,18 +96,19 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    // Hash password
+    // 4. Hash the password for security
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert new user
+    // 5. Insert new user into database
     const [result] = await pool.execute(
       'INSERT INTO Users (first_name, last_name, email, phone, password_hash, user_type) VALUES (?, ?, ?, ?, ?, ?)',
       [fullName.split(' ')[0], fullName.split(' ')[1] || '', email, phoneNumber, hashedPassword, 'student']
     );
 
-    // Generate JWT token
+    // 6. Generate JWT token for authentication
     const token = jwt.sign({ userId: result.insertId }, JWT_SECRET, { expiresIn: '24h' });
 
+    // 7. Send success response with token and user data
     res.status(201).json({
       message: 'User registered successfully',
       token,
@@ -127,14 +129,15 @@ app.post('/api/auth/register', async (req, res) => {
 // Login user
 app.post('/api/auth/login', async (req, res) => {
   try {
+    // 1. Get credentials from request body
     const { email, password } = req.body;
 
-    // Validate input
+    // 2. Validate required fields
     if (!email || !password) {
       return res.status(400).json({ error: 'Missing email or password' });
     }
 
-    // Find user
+    // 3. Find user by email
     const [users] = await pool.execute('SELECT * FROM Users WHERE email = ?', [email]);
 
     if (users.length === 0) {
@@ -143,15 +146,16 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = users[0];
 
-    // Verify password
+    // 4. Verify password
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Generate JWT token
+    // 5. Generate JWT token
     const token = jwt.sign({ userId: user.user_id }, JWT_SECRET, { expiresIn: '24h' });
 
+    // 6. Send success response with token and user data
     res.json({
       message: 'Login successful',
       token,
