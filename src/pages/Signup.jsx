@@ -3,12 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    studentId: '',
-    phoneNumber: '',
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -60,28 +59,28 @@ const Signup = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="fullName" className="sr-only">Full Name</label>
+              <label htmlFor="firstName" className="sr-only">First Name</label>
               <input
-                id="fullName"
-                name="fullName"
+                id="firstName"
+                name="firstName"
                 type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="Full Name"
-                value={formData.fullName}
+                placeholder="First Name"
+                value={formData.firstName}
                 onChange={handleChange}
               />
             </div>
             <div>
-              <label htmlFor="studentId" className="sr-only">Student ID</label>
+              <label htmlFor="lastName" className="sr-only">Last Name</label>
               <input
-                id="studentId"
-                name="studentId"
+                id="lastName"
+                name="lastName"
                 type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="Student ID"
-                value={formData.studentId}
+                placeholder="Last Name"
+                value={formData.lastName}
                 onChange={handleChange}
               />
             </div>
@@ -95,19 +94,6 @@ const Signup = () => {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="phoneNumber" className="sr-only">Phone Number</label>
-              <input
-                id="phoneNumber"
-                name="phoneNumber"
-                type="tel"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="Phone Number"
-                value={formData.phoneNumber}
                 onChange={handleChange}
               />
             </div>
