@@ -75,40 +75,57 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  console.log('Test endpoint hit!');
+  res.json({ message: 'Server is working!' });
+});
+
 // Register new user
 app.post('/api/auth/register', async (req, res) => {
   try {
-    // 1. Get user data from request body
+    console.log('=== New Registration Request ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
     const { fullName, email, password, studentId, phoneNumber } = req.body;
 
-    // 2. Validate required fields
+    // Validate input
     if (!fullName || !email || !password || !studentId) {
+      console.log('❌ Missing required fields');
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // 3. Check if user already exists
+    // Check if user already exists
+    console.log('Checking for existing user...');
     const [existingUsers] = await pool.execute(
       'SELECT * FROM Users WHERE email = ? OR student_id = ?',
       [email, studentId]
     );
 
     if (existingUsers.length > 0) {
+      console.log('❌ User already exists');
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    // 4. Hash the password for security
+    // Hash password
+    console.log('Hashing password...');
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('✅ Password hashed successfully');
 
-    // 5. Insert new user into database
+    // Insert new user
+    console.log('Inserting new user...');
     const [result] = await pool.execute(
       'INSERT INTO Users (first_name, last_name, email, phone, password_hash, user_type) VALUES (?, ?, ?, ?, ?, ?)',
       [fullName.split(' ')[0], fullName.split(' ')[1] || '', email, phoneNumber, hashedPassword, 'student']
     );
+    console.log('✅ User inserted successfully. ID:', result.insertId);
 
-    // 6. Generate JWT token for authentication
+    // Generate JWT token
+    console.log('Generating JWT token...');
     const token = jwt.sign({ userId: result.insertId }, JWT_SECRET, { expiresIn: '24h' });
+    console.log('✅ Token generated successfully');
 
-    // 7. Send success response with token and user data
+    console.log('=== Registration Successful ===');
     res.status(201).json({
       message: 'User registered successfully',
       token,
@@ -121,7 +138,7 @@ app.post('/api/auth/register', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('❌ Registration error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
