@@ -131,7 +131,7 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     // 1. Extract credentials
     const { email, password } = req.body;
-
+   
     // 2. Basic presence check
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });

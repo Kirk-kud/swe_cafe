@@ -23,7 +23,13 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:8080/api/auth/login", formData);
+      const response = await fetch("api/auth/login", {
+        body: JSON.stringify(formData),
+        method: "POST",
+        headers: {
+          'Content-type': 'application/json'
+        }
+      });
       
       // Store token and user data in localStorage
       localStorage.setItem("token", response.data.token);
