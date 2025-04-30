@@ -6,22 +6,44 @@ const Login = () => {
     email: '',
     password: '',
   });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
-      [name]: value
+      [name]: value.trim() // Trim whitespace from inputs
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement login logic here
-    console.log('Login attempt with:', formData);
-    // After successful login:
-    // navigate('/dashboard');
+    setError(''); // Reset error message
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Authentication failed');
+      }
+
+      // Store token securely
+      localStorage.setItem('authToken', data.token);
+      
+      // Redirect to dashboard
+      navigate('/AshesiEatsDashboard');
+
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message || 'Failed to sign in');
+    }
   };
 
   return (
@@ -38,6 +60,13 @@ const Login = () => {
             </Link>
           </p>
         </div>
+        
+        {error && (
+          <div className="text-red-600 text-center text-sm">
+            {error}
+          </div>
+        )}
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -68,26 +97,6 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                Remember me
-              </label>
-            </div>
-
-            <div className="text-sm">
-              <a href="#" className="font-medium text-orange-600 hover:text-orange-500">
-                Forgot your password?
-              </a>
-            </div>
-          </div>
-
           <div>
             <button
               type="submit"
@@ -102,4 +111,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;
