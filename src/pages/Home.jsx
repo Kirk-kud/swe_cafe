@@ -1,8 +1,9 @@
 import React from "react";
 import RestaurantCard from "../components/Restaurant_Card.jsx";
 import Api from "../components/Api.jsx";
-import testImage from "../assets/test.png";
-import testImage2 from "../assets/test2.png";
+import akonnorImage from "../assets/akonnor.jpg";
+import munchiesImage from "../assets/test2.png";
+import hallmarkImage from "../assets/test.png";
 import mainImage from "../assets/dinning.png";
 
 const HomePage = () => {
@@ -40,7 +41,7 @@ const HomePage = () => {
             <RestaurantCard 
               text="Akornor" 
               color="red" 
-              image={testImage}
+              image={akonnorImage}
               description="Authentic Ghanaian cuisine with a modern twist"
             />
           </div>
@@ -48,7 +49,7 @@ const HomePage = () => {
             <RestaurantCard 
               text="Munchies" 
               color="blue" 
-              image={testImage2}
+              image={munchiesImage}
               description="Quick bites and snacks for your busy schedule"
             />
           </div>
@@ -56,7 +57,7 @@ const HomePage = () => {
             <RestaurantCard 
               text="Hallmark" 
               color="green" 
-              image={testImage}
+              image={hallmarkImage}
               description="Premium dining experience with international flavors"
             />
           </div>
