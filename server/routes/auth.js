@@ -1,43 +1,41 @@
 const express = require('express');
-const router = express.Router();
 const { executeQuery } = require('../db/connection');
 const jwt = require('jsonwebtoken');
+
+const router = express.Router();
 
 // Login endpoint
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    // Query the database for the user
     const [users] = await executeQuery(
-      'SELECT * FROM users WHERE email = ? AND password = ?',
+      'SELECT * FROM Users WHERE email = ? AND password = ?',
       [email, password]
     );
 
     if (users.length === 0) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const user = users[0];
-    
-    // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '24h' }
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
     );
 
     res.json({
-      token,
       user: {
         id: user.id,
         email: user.email,
-        name: user.name
-      }
+        name: user.name,
+        role: user.role
+      },
+      token
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ error: 'Login failed' });
   }
 });
 
@@ -45,21 +43,18 @@ router.post('/login', async (req, res) => {
 router.get('/session', async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
-    
     if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
+      return res.status(401).json({ error: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    
-    // Query the database for the user
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const [users] = await executeQuery(
-      'SELECT * FROM users WHERE id = ?',
-      [decoded.userId]
+      'SELECT * FROM Users WHERE id = ?',
+      [decoded.id]
     );
 
     if (users.length === 0) {
-      return res.status(401).json({ message: 'User not found' });
+      return res.status(401).json({ error: 'User not found' });
     }
 
     const user = users[0];
@@ -67,12 +62,13 @@ router.get('/session', async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name
+        name: user.name,
+        role: user.role
       }
     });
   } catch (error) {
     console.error('Session check error:', error);
-    res.status(401).json({ message: 'Invalid token' });
+    res.status(401).json({ error: 'Invalid token' });
   }
 });
 

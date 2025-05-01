@@ -11,13 +11,17 @@ const pool = mysql.createPool({
 });
 
 async function executeQuery(query, params = []) {
-  const connection = await pool.getConnection();
+  let connection;
   try {
+    connection = await pool.getConnection();
     const [results] = await connection.execute(query, params);
-    return results;
+    return [results];
+  } catch (error) {
+    console.error('Database error:', error);
+    throw error;
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 }
 
-module.exports = { pool, executeQuery }; 
+module.exports = { executeQuery }; 
