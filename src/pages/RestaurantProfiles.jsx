@@ -8,41 +8,48 @@ import RestaurantInfoCard from "../components/RestaurantInfoCard";
 
 const RestaurantProfiles = () => {
   return (
-    <div>
-      <div className="flex justify-between mt-5">
-        <div className="ml-5">
-          <p>Order from Akornor</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-2xl font-bold">Order from Akornor</h1>
+          </div>
+          <div className="w-64">
+            <Search />
+          </div>
         </div>
-        <div className="mr-5">
-          <Search />
-        </div>
-      </div>
-      <div className="flex p-4 mt-5">
-        <div className="w-[300px]">
-          <MenuBar />
+        
+        <div className="flex gap-6">
+          <div className="w-64">
+            <MenuBar />
+          </div>
+
+          <div className="flex-1">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">Pizzas</h2>
+              <div className="space-y-4">
+                <FoodCard
+                  title="Hallmark"
+                  text="Delicious spicy rice with chicken"
+                  image={testImage2}
+                />
+                <FoodCard
+                  title="Hallmark"
+                  text="Delicious spicy rice with chicken"
+                  image={testImage2}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="w-64">
+            <ShoppingBasket />
+          </div>
         </div>
 
-        <div className="ml-15 w-full max-w-[600px] flex flex-col gap-3">
-          <p>Pizzas</p>
-          <FoodCard
-            title="Hallmark"
-            text="Delicious spicy rice with chicken"
-            image={testImage2}
-          />
-          <FoodCard
-            title="Hallmark"
-            text="Delicious spicy rice with chicken"
-            image={testImage2}
-          />
+        <div className="mt-8">
+          <RestaurantInfoCard />
         </div>
-
-        <div className="w-[300px]">
-          <ShoppingBasket />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-center mt-5">
-        <RestaurantInfoCard />
       </div>
     </div>
   );

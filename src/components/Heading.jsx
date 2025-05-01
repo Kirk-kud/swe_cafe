@@ -1,9 +1,16 @@
 import React from "react";
+import { useAuth } from "../context/AuthContext";
 
-const LocationBar = () => {
+const Heading = () => {
+  const { user, isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
-    <div className="flex items-center justify-between  w-full">
-      <div className="flex items-center py-2 px-4">
+    <div className="flex items-center justify-between w-full bg-gray-100 py-2 px-4">
+      <div className="flex items-center">
         <div className="flex items-center mr-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -22,61 +29,25 @@ const LocationBar = () => {
         </div>
         <div className="flex items-center">
           <span className="font-medium text-sm">
-            Regent Street, A4, A4201, London
-          </span>
-          <span className="ml-3 text-orange-500 font-medium text-sm cursor-pointer hover:underline">
-            Change Location
+            Ashesi University, Berekuso
           </span>
         </div>
       </div>
 
-      {/* Right side - Shopping Cart */}
-      <div className="flex h-full">
-        <div className="bg-green-600 text-white flex items-center px-4 py-2">
-          <div className="flex items-center mr-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M8 2H5a2 2 0 0 0-2 2v3m15 0V4a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-            <div className="ml-1 flex items-center justify-center bg-white text-green-600 rounded-full h-5 w-5 font-bold text-xs">
-              WG
-            </div>
+      {/* User Profile Section */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-semibold">
+            {user?.fullName?.[0] || 'U'}
           </div>
-          <span className="font-medium">23 Items</span>
-        </div>
-        <div className="bg-green-600 text-white flex items-center px-4 border-l border-green-700">
-          <span className="font-medium">GBP 79.89</span>
-        </div>
-        <div className="bg-green-600 text-white flex items-center px-4 border-l border-green-700">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
+          <div className="ml-3">
+            <p className="text-sm font-medium">Welcome, {user?.fullName}</p>
+            <p className="text-xs text-gray-500">{user?.email}</p>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default LocationBar;
+export default Heading;

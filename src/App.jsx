@@ -6,53 +6,75 @@ import Footer from "./components/Footer.jsx";
 import RestaurantProfiles from "./pages/RestaurantProfiles.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
-import AshesiEatsDashboard from "./pages/admin/AshesiEatsDashboard.jsx"
+import AshesiEatsDashboard from "./pages/admin/AshesiEatsDashboard.jsx";
 import CafeteriaManagement from "./pages/admin/CafeteriaManagement.jsx";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
 
 function App() {
   return (
-    <Router>
-      <div>
-        <header>
-          <Heading />
-          <Navbar />
-        </header>
-        <main>
-          <Routes>
-            <Route exact path="/" element={<HomePage />}></Route>
-            <Route
-              exact
-              path="/RestaurantProfiles"
-              element={<RestaurantProfiles />}
-            ></Route>
-            <Route
-              exact
-              path="/Login"
-              element={<Login />}
-            ></Route>
-            <Route
-              exact
-              path="/Signup"
-              element={<Signup />}
-            ></Route>
-            <Route
-              exact
-              path="/AshesiEatsDashboard"
-              element={<AshesiEatsDashboard />}
-            ></Route>
-            <Route
-              exact
-              path="/CafeteriaManagement"
-              element={<CafeteriaManagement />}
-            ></Route>
-          </Routes>
-        </main>
-        <footer>
-          <Footer />
-        </footer>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div>
+          <header>
+            <Heading />
+            <Navbar />
+          </header>
+          <main>
+            <Routes>
+              <Route exact path="/" element={<HomePage />} />
+              <Route exact path="/login" element={<Login />} />
+              <Route exact path="/signup" element={<Signup />} />
+              <Route
+                exact
+                path="/RestaurantProfiles"
+                element={
+                  <ProtectedRoute>
+                    <RestaurantProfiles />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                exact
+                path="/AshesiEatsDashboard"
+                element={
+                  <ProtectedRoute>
+                    <AshesiEatsDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                exact
+                path="/CafeteriaManagement"
+                element={
+                  <ProtectedRoute>
+                    <CafeteriaManagement />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </main>
+          <footer>
+            <Footer />
+          </footer>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

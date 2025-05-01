@@ -7,44 +7,69 @@ import mainImage from "../assets/dinning.png";
 
 const HomePage = () => {
   return (
-    <div>
-      <div className="px-8">
-        <div className="w-full h-[80vh]">
-          <div
-            className="flex flex-col items-start justify-end h-full bg-black bg-opacity-50 text-white text-center px-4 rounded-2xl bg-cover bg-center rounded-2xl  mx-auto  px-8 pb-8 pt-40" 
-            style={{backgroundImage: `url(${mainImage})`}}
-          >
-            <p className="mt-4 text-4xl content-end ">Welcome to AshesiEats</p>
-            <p className="mt-4 text-6xl ">Crave it. Click it. Campus-delivered.</p>
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <div className="relative h-[80vh]">
+        <div
+          className="absolute inset-0 bg-black bg-opacity-50 bg-cover bg-center"
+          style={{ backgroundImage: `url(${mainImage})` }}
+        />
+        <div className="relative h-full flex flex-col items-center justify-center text-white text-center px-4">
+          <div className="bg-black bg-opacity-50 p-8 rounded-lg backdrop-blur-sm">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4">
+              Welcome to AshesiEats
+            </h1>
+            <p className="text-2xl md:text-4xl">
+              Crave it. Click it. Campus-delivered.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Restaurants Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4 text-gray-800">Featured Restaurants</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Discover the best dining options on campus. From local favorites to international cuisine, we've got you covered.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <RestaurantCard 
+              text="Akornor" 
+              color="red" 
+              image={testImage}
+              description="Authentic Ghanaian cuisine with a modern twist"
+            />
+          </div>
+          <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <RestaurantCard 
+              text="Munchies" 
+              color="blue" 
+              image={testImage2}
+              description="Quick bites and snacks for your busy schedule"
+            />
+          </div>
+          <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <RestaurantCard 
+              text="Hallmark" 
+              color="green" 
+              image={testImage}
+              description="Premium dining experience with international flavors"
+            />
           </div>
         </div>
 
-        <div className="mt-10"></div>
-        <p className="mb-5 font-bold text-3xl">Categories</p>
-        <div className="flex flex-wrap justify-center gap-5">
-          <RestaurantCard
-            text="Steak and Mashed Potatoes"
-            color="white"
-            image={testImage}
-          />
-          <RestaurantCard text="Hallmark" color="white" image={testImage} />
-          <RestaurantCard text="Hallmark" color="white" image={testImage} />
-          <RestaurantCard text="Hallmark" color="white" image={testImage} />
+        {/* View All Button */}
+        <div className="text-center mt-12">
+          <button className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors duration-300">
+            View All Restaurants
+          </button>
         </div>
-        <div className="mt-10"></div>
-        <p className="mb-5 font-bold text-3xl">Restaurants</p>
-        <div className="flex flex-wrap justify-center gap-5">
-          <RestaurantCard
-            text="Real Munchys"
-            color="orange"
-            image={testImage2}
-          />
-          <RestaurantCard text="Hallmark" color="white" image={testImage2} />
-          <RestaurantCard text="Hallmark" color="white" image={testImage2} />
-          <RestaurantCard text="Hallmark" color="white" image={testImage2} />
-        </div>
-        <Api />
       </div>
+      <Api />
     </div>
   );
 };

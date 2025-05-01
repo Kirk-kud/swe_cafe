@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+import ordersRouter from "./server/routes/orders.js";
 
 // Load environment variables
 dotenv.config();
@@ -15,8 +16,8 @@ app.use(express.json());
 
 // CORS options
 const corsOptions = {
-  origin: "http://localhost:5173", // Vite default port
-  credentials: true // Optional: if you use cookies/auth
+  origin: ["http://localhost:5173", "http://localhost:5174"],
+  credentials: true
 };
 
 // Apply CORS middleware
@@ -28,7 +29,7 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT || 3306,
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'AshesiEats',
+  database: process.env.DB_NAME || 'ashesi_eats',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -42,6 +43,7 @@ async function testConnection() {
     connection.release();
   } catch (error) {
     console.error('❌ Error connecting to MySQL:', error);
+    process.exit(1); // Exit if database connection fails
   }
 }
 
@@ -206,7 +208,42 @@ app.get('/api/restaurants/:id', async (req, res) => {
   }
 });
 
-// Start server
-app.listen(8080, () => {
-  console.log("✅ Server started on port 8080");
+// Use the orders routes
+app.use('/api/orders', ordersRouter);
+
+// Session validation endpoint
+app.get('/api/auth/session', authenticateToken, async (req, res) => {
+  try {
+    const user = req.user;
+    res.json({
+      user: {
+        id: user.user_id,
+        email: user.email,
+        fullName: `${user.first_name} ${user.last_name}`,
+        studentId: user.student_id,
+        phoneNumber: user.phone,
+        userType: user.user_type
+      }
+    });
+  } catch (error) {
+    console.error('Session validation error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Logout endpoint
+app.post('/api/auth/logout', (req, res) => {
+  res.json({ message: 'Logged out successfully' });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
