@@ -32,8 +32,22 @@ const Signup = () => {
 
     try {
       // TODO: Implement actual signup logic here
-      console.log('Signup attempt:', formData);
-      navigate('/login');
+      
+
+      const response = await fetch("api/auth/register", {
+        body: JSON.stringify(formData),
+        method: "POST",
+        headers: {
+          'Content-type': 'application/json'
+        }
+      })
+      if (response.status == 201) {
+        navigate('/login');
+      }
+      else {
+        navigate('/register');
+      }
+      // navigate('/api/auth/register');
     } catch (err) {
       setError('Failed to create account');
     }

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+import ordersRouter from "./server/routes/orders.js";
 
 // Load environment variables
 dotenv.config();
@@ -15,8 +16,8 @@ app.use(express.json());
 
 // CORS options
 const corsOptions = {
-  origin: "http://localhost:5173", // Vite default port
-  credentials: true // Optional: if you use cookies/auth
+  origin: ["http://localhost:5173", "http://localhost:5174"],
+  credentials: true
 };
 
 // Apply CORS middleware
@@ -25,10 +26,10 @@ app.use(cors(corsOptions));
 // Create database connection pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 3307,
+  port: process.env.DB_PORT || 3306,
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'Password@1',
-  database: process.env.DB_NAME || 'AshesiEats',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'ashesi_eats',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -42,6 +43,7 @@ async function testConnection() {
     connection.release();
   } catch (error) {
     console.error('❌ Error connecting to MySQL:', error);
+    process.exit(1); // Exit if database connection fails
   }
 }
 
@@ -78,7 +80,7 @@ const authenticateToken = async (req, res, next) => {
 // Register new user
 app.post('/api/auth/register', async (req, res) => {
   try {
-    // 1. Get user data from request body
+    //1. Get user data from request body
     const { fullName, email, password, studentId, phoneNumber } = req.body;
 
     // 2. Validate required fields
@@ -88,8 +90,8 @@ app.post('/api/auth/register', async (req, res) => {
 
     // 3. Check if user already exists
     const [existingUsers] = await pool.execute(
-      'SELECT * FROM Users WHERE email = ? OR student_id = ?',
-      [email, studentId]
+      'SELECT * FROM Users WHERE email = ?',
+      [email]
     );
 
     if (existingUsers.length > 0) {
@@ -124,55 +126,43 @@ app.post('/api/auth/register', async (req, res) => {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+}); 
 
 // Login user
 app.post('/api/auth/login', async (req, res) => {
   try {
-    // 1. Get credentials from request body
+    // 1. Extract credentials
     const { email, password } = req.body;
-
-    // 2. Validate required fields
+   
+    // 2. Basic presence check
     if (!email || !password) {
-      return res.status(400).json({ error: 'Missing email or password' });
+      return res.status(400).json({ error: 'Email and password required' });
     }
 
-    // 3. Find user by email
-    const [users] = await pool.execute('SELECT * FROM Users WHERE email = ?', [email]);
+    // 3. Find user by email (only essential fields)
+    const [users] = await pool.execute(
+      'SELECT user_id, password_hash FROM Users WHERE email = ?',
+      [email]
+    );
 
-    if (users.length === 0) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+    // 4. Unified error response
+    if (users.length === 0 || !(await bcrypt.compare(password, users[0].password_hash))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
-
-    const user = users[0];
-
-    // 4. Verify password
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-    if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // 5. Generate JWT token
-    const token = jwt.sign({ userId: user.user_id }, JWT_SECRET, { expiresIn: '24h' });
-
-    // 6. Send success response with token and user data
-    res.json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.user_id,
-        email: user.email,
-        fullName: `${user.first_name} ${user.last_name}`,
-        studentId: user.student_id,
-        phoneNumber: user.phone,
-        userType: user.user_type
-      }
+    // 5. Generate minimal token
+    const token = jwt.sign({ userId: users[0].user_id }, process.env.JWT_SECRET, {
+      expiresIn: '24h'
     });
+
+    // 6. Return only authentication confirmation
+    res.json({ token });
+
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Authentication failed' });
   }
 });
+
 
 // Protected route example
 app.get('/api/profile', authenticateToken, (req, res) => {
@@ -218,7 +208,42 @@ app.get('/api/restaurants/:id', async (req, res) => {
   }
 });
 
-// Start server
-app.listen(8080, () => {
-  console.log("✅ Server started on port 8080");
+// Use the orders routes
+app.use('/api/orders', ordersRouter);
+
+// Session validation endpoint
+app.get('/api/auth/session', authenticateToken, async (req, res) => {
+  try {
+    const user = req.user;
+    res.json({
+      user: {
+        id: user.user_id,
+        email: user.email,
+        fullName: `${user.first_name} ${user.last_name}`,
+        studentId: user.student_id,
+        phoneNumber: user.phone,
+        userType: user.user_type
+      }
+    });
+  } catch (error) {
+    console.error('Session validation error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Logout endpoint
+app.post('/api/auth/logout', (req, res) => {
+  res.json({ message: 'Logged out successfully' });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

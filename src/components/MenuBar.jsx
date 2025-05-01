@@ -1,6 +1,10 @@
 import React from "react";
 
 const MenuBar = () => {
+  const handleDropdown = () => {
+    // Dropdown logic here
+  };
+
   return (
     <div
       className=" lg:left-0 left-[-300px] 
@@ -34,7 +38,7 @@ const MenuBar = () => {
             <i className="bi bi-chat-left-text-fill"></i>
             <div
               className="flex justify-between w-full items-center"
-              onclick="dropDown()"
+              onClick={handleDropdown}
             >
               <span className="text-[15px] ml-4 text-black group-hover:text-white">
                 Chatbox
