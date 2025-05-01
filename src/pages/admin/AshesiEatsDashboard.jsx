@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import OrderTracker from "../../components/OrderTracker.jsx";
 
 // Observer pattern implementation
 class OrderSubject {
@@ -30,7 +31,7 @@ class OrderSubject {
 
 const orderSubject = new OrderSubject();
 
-// CRUD Operations
+// API Service
 const OrderService = {
   async getAll() {
     try {
@@ -605,7 +606,9 @@ const AshesiEatsDashboard = () => {
     activeStudents: 0,
     deliveryTime: 0
   });
+  const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -613,27 +616,21 @@ const AshesiEatsDashboard = () => {
       // Parallel requests
       const [orders, restaurants, statsData] = await Promise.all([
         OrderService.getAll(),
-        pool.promiseQuery('SELECT * FROM Restaurants'),
-        pool.promiseQuery(`
-          SELECT 
-            COUNT(*) as totalOrders,
-            SUM(amount) as totalRevenue,
-            COUNT(DISTINCT student_id) as activeStudents,
-            AVG(delivery_time) as deliveryTime
-          FROM Orders
-        `)
+        fetch('/api/restaurants').then(res => res.json()),
+        fetch('/api/stats').then(res => res.json())
       ]);
 
       setOrders(orders);
       setRestaurants(restaurants);
       setStats({
-        totalOrders: statsData[0].totalOrders || 0,
-        totalRevenue: statsData[0].totalRevenue || 0,
-        activeStudents: statsData[0].activeStudents || 0,
-        deliveryTime: Math.round(statsData[0].deliveryTime || 0)
+        totalOrders: statsData.totalOrders || 0,
+        totalRevenue: statsData.totalRevenue || 0,
+        activeStudents: statsData.activeStudents || 0,
+        deliveryTime: Math.round(statsData.deliveryTime || 0)
       });
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
+    } catch (err) {
+      setError('Failed to fetch data');
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }

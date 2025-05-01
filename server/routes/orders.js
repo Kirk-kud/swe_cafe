@@ -1,24 +1,11 @@
-import express from 'express';
-import mysql from 'mysql2/promise';
-
+const express = require('express');
 const router = express.Router();
-
-// Create connection pool
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ashesi_eats',
-  port: process.env.DB_PORT || 3307,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+const { executeQuery } = require('../db/connection');
 
 // Get all orders
 router.get('/', async (req, res) => {
   try {
-    const [orders] = await pool.query('SELECT * FROM Orders');
+    const orders = await executeQuery('SELECT * FROM orders');
     res.json(orders);
   } catch (error) {
     console.error('Error fetching orders:', error);
@@ -30,8 +17,8 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { student_id, restaurant_id, items, total_amount, status } = req.body;
-    const [result] = await pool.query(
-      'INSERT INTO Orders (student_id, restaurant_id, items, total_amount, status) VALUES (?, ?, ?, ?, ?)',
+    const result = await executeQuery(
+      'INSERT INTO orders (student_id, restaurant_id, items, total_amount, status) VALUES (?, ?, ?, ?, ?)',
       [student_id, restaurant_id, JSON.stringify(items), total_amount, status]
     );
     res.status(201).json({ id: result.insertId, ...req.body });
@@ -46,7 +33,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    await pool.query('UPDATE Orders SET status = ? WHERE id = ?', [status, id]);
+    await executeQuery('UPDATE orders SET status = ? WHERE id = ?', [status, id]);
     res.json({ id, status });
   } catch (error) {
     console.error('Error updating order:', error);
@@ -58,12 +45,12 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM Orders WHERE id = ?', [id]);
-    res.json({ message: 'Order deleted successfully' });
+    await executeQuery('DELETE FROM orders WHERE id = ?', [id]);
+    res.json({ id });
   } catch (error) {
     console.error('Error deleting order:', error);
     res.status(500).json({ error: 'Failed to delete order' });
   }
 });
 
-export default router; 
+module.exports = router; 

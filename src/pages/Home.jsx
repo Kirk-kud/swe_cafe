@@ -5,6 +5,8 @@ import akonnorImage from "../assets/akonnor.jpg";
 import munchiesImage from "../assets/test2.png";
 import hallmarkImage from "../assets/test.png";
 import mainImage from "../assets/dinning.png";
+import { PaymentProvider, usePayment } from "../contexts/PaymentContext.jsx";
+import MobileMoneyPayment from "../features/payments/MobileMoneyPayment.jsx";
 
 const HomePage = () => {
   return (
