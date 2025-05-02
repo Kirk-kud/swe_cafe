@@ -21,7 +21,7 @@ router.post('/register', async (req, res) => {
 
     // Create new user
     const [result] = await executeQuery(
-      'INSERT INTO Users (email, password, first_name, last_name, role) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO Users (email, password_hash, first_name, last_name, role) VALUES (?, ?, ?, ?, ?)',
       [email, password, first_name, last_name, role || 'student']
     );
 
@@ -57,7 +57,7 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const [users] = await executeQuery(
-      'SELECT * FROM Users WHERE email = ? AND password = ?',
+      'SELECT * FROM Users WHERE email = ? AND password_hash = ?',
       [email, password]
     );
 

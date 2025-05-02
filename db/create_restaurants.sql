@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS Restaurants (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image_url TEXT,
+    rating DECIMAL(3,1) DEFAULT 0.0,
+    location VARCHAR(255),
+    opening_hours VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+); 
