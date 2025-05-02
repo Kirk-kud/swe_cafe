@@ -11,7 +11,7 @@ import CafeteriaManagement from "./pages/admin/CafeteriaManagement.jsx";
 import OrderTracker from "./components/OrderTracker.jsx";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { OrderProvider } from './contexts/OrderContext';
+import { OrderProvider } from './context/OrderContext';
 import { PaymentProvider } from './contexts/PaymentContext';
 
 // Protected Route Component
@@ -29,61 +29,45 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-function App() {
+const App = () => {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <OrderProvider>
           <PaymentProvider>
-            <div className="min-h-screen bg-gray-50">
-              <header>
-                <Heading />
-                <Navbar />
-              </header>
-              <main>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-grow">
                 <Routes>
-                  <Route exact path="/" element={<HomePage />} />
-                  <Route exact path="/login" element={<Login />} />
-                  <Route exact path="/signup" element={<Signup />} />
-                  <Route exact path="/track-order" element={<OrderTracker />} />
-                  <Route
-                    exact
-                    path="/RestaurantProfiles"
-                    element={
-                      <ProtectedRoute>
-                        <RestaurantProfiles />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/AshesiEatsDashboard"
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/restaurants" element={<RestaurantProfiles />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route 
+                    path="/admin/dashboard" 
                     element={
                       <ProtectedRoute>
                         <AshesiEatsDashboard />
                       </ProtectedRoute>
-                    }
+                    } 
                   />
-                  <Route
-                    exact
-                    path="/CafeteriaManagement"
+                  <Route 
+                    path="/admin/cafeteria" 
                     element={
                       <ProtectedRoute>
                         <CafeteriaManagement />
                       </ProtectedRoute>
-                    }
+                    } 
                   />
                 </Routes>
               </main>
-              <footer>
-                <Footer />
-              </footer>
+              <Footer />
             </div>
           </PaymentProvider>
         </OrderProvider>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
-}
+};
 
 export default App;

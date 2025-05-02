@@ -9,8 +9,13 @@ const authRouter = require('./routes/auth');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// CORS configuration
+app.use(cors({
+  origin: 'http://localhost:5173', // Your Vite dev server
+  credentials: true
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // Routes
@@ -25,6 +30,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
+// Start server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 }); 

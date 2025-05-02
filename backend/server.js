@@ -79,7 +79,7 @@ const authenticateToken = async (req, res, next) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     //1. Get user data from request body
-    const { fullName, email, password, studentId, phoneNumber } = req.body;
+    const { firstName, lastName, email, password, studentId, phoneNumber } = req.body;
 
     // 2. Validate required fields
     if (!fullName || !email || !password || !studentId) {
@@ -102,7 +102,7 @@ app.post('/api/auth/register', async (req, res) => {
     // 5. Insert new user into database
     const [result] = await pool.execute(
       'INSERT INTO Users (first_name, last_name, email, phone, password_hash, user_type) VALUES (?, ?, ?, ?, ?, ?)',
-      [fullName.split(' ')[0], fullName.split(' ')[1] || '', email, phoneNumber, hashedPassword, 'student']
+      [firstName, lastName, email, phoneNumber, hashedPassword, 'student']
     );
 
     // 6. Generate JWT token for authentication
@@ -115,7 +115,8 @@ app.post('/api/auth/register', async (req, res) => {
       user: {
         id: result.insertId,
         email,
-        fullName,
+        firstName,
+        lastName,
         studentId,
         phoneNumber
       }

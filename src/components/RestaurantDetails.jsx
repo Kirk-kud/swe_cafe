@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useOrder } from '../context/OrderContext';
+import OrderSummary from './OrderSummary';
 
 const RestaurantDetails = () => {
   const { id } = useParams();
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showOrderSummary, setShowOrderSummary] = useState(false);
+  const { addItem, currentOrder } = useOrder();
 
   useEffect(() => {
     const fetchRestaurant = async () => {
@@ -25,6 +29,10 @@ const RestaurantDetails = () => {
 
     fetchRestaurant();
   }, [id]);
+
+  const handleAddToOrder = (item) => {
+    addItem(item, id);
+  };
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
@@ -62,13 +70,35 @@ const RestaurantDetails = () => {
             </div>
             
             <div className="mt-6">
-              <h2 className="text-2xl font-bold mb-4">Menu</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Menu</h2>
+                <button
+                  onClick={() => setShowOrderSummary(true)}
+                  className="bg-red-900 text-white px-4 py-2 rounded-lg flex items-center"
+                >
+                  <span className="mr-2">View Order</span>
+                  {currentOrder.items.length > 0 && (
+                    <span className="bg-white text-red-900 rounded-full w-6 h-6 flex items-center justify-center">
+                      {currentOrder.items.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {restaurant.menu?.map((item) => (
                   <div key={item.item_id} className="border rounded-lg p-4">
                     <h3 className="font-semibold">{item.name}</h3>
                     <p className="text-gray-600">{item.description}</p>
-                    <p className="text-green-600 font-semibold mt-2">${item.price}</p>
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-green-600 font-semibold">₵{item.price}</p>
+                      <button
+                        onClick={() => handleAddToOrder(item)}
+                        className="bg-red-900 text-white px-3 py-1 rounded hover:bg-red-800"
+                      >
+                        Add to Order
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -76,6 +106,14 @@ const RestaurantDetails = () => {
           </div>
         </div>
       </div>
+
+      {showOrderSummary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <OrderSummary onClose={() => setShowOrderSummary(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

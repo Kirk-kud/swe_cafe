@@ -67,11 +67,11 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      localStorage.removeItem('token');
-      setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
     }
+    localStorage.removeItem('token');
+    setUser(null);
   };
 
   const value = {
