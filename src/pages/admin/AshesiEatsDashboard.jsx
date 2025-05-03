@@ -211,10 +211,15 @@ const RecentOrdersTable = ({ orders, onRefresh }) => {
   const ordersPerPage = 5;
 
   const getRestaurantBorder = (restaurant) => {
-    if (restaurant === 'Big Ben') return 'border-l-4 border-orange-500';
-    if (restaurant === 'Akornor') return 'border-l-4 border-green-500';
-    if (restaurant === 'Hallmark') return 'border-l-4 border-blue-500';
-    return '';
+    const name = restaurant?.name || '';
+    // Use the first letter of restaurant name to determine a consistent color
+    const firstChar = name.charAt(0).toLowerCase();
+    
+    if (firstChar >= 'a' && firstChar <= 'h') return 'border-l-4 border-blue-500';
+    if (firstChar >= 'i' && firstChar <= 'p') return 'border-l-4 border-green-500';
+    if (firstChar >= 'q' && firstChar <= 'z') return 'border-l-4 border-orange-500';
+    
+    return 'border-l-4 border-gray-500';
   };
 
   const handleDelete = async (id) => {
@@ -283,52 +288,59 @@ const RecentOrdersTable = ({ orders, onRefresh }) => {
         </div>
 
         <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="text-left p-3">Order ID</TableHead>
-                <TableHead className="text-left p-3">Student</TableHead>
-                <TableHead className="text-left p-3">Restaurant</TableHead>
-                <TableHead className="text-left p-3">Amount</TableHead>
-                <TableHead className="text-left p-3">Status</TableHead>
-                <TableHead className="text-left p-3">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentOrders.map((order) => (
-                <TableRow key={order.id} className={getRestaurantBorder(order.restaurant)}>
-                  <TableCell className="p-3">{order.id}</TableCell>
-                  <TableCell className="p-3">{order.student}</TableCell>
-                  <TableCell className="p-3">{order.restaurant}</TableCell>
-                  <TableCell className="p-3">₵{order.amount.toFixed(2)}</TableCell>
-                  <TableCell className="p-3">
-                    <StatusBadge status={order.status} />
-                  </TableCell>
-                  <TableCell className="p-3">
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditOrder(order);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        <Edit size={16} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(order.id)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {currentOrders.length === 0 ? (
+            <div className="bg-white p-6 rounded-lg text-center">
+              <p className="text-gray-500 mb-2">No orders found.</p>
+              <p className="text-sm text-gray-400">New orders will appear here when customers place them.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="text-left p-3">Order ID</TableHead>
+                  <TableHead className="text-left p-3">Student</TableHead>
+                  <TableHead className="text-left p-3">Restaurant</TableHead>
+                  <TableHead className="text-left p-3">Amount</TableHead>
+                  <TableHead className="text-left p-3">Status</TableHead>
+                  <TableHead className="text-left p-3">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {currentOrders.map((order) => (
+                  <TableRow key={order.id} className={getRestaurantBorder(order.restaurant)}>
+                    <TableCell className="p-3">{order.id}</TableCell>
+                    <TableCell className="p-3">{order.student}</TableCell>
+                    <TableCell className="p-3">{order.restaurant}</TableCell>
+                    <TableCell className="p-3">₵{order.amount ? order.amount.toFixed(2) : '0.00'}</TableCell>
+                    <TableCell className="p-3">
+                      <StatusBadge status={order.status} />
+                    </TableCell>
+                    <TableCell className="p-3">
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditOrder(order);
+                            setIsDialogOpen(true);
+                          }}
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(order.id)}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </div>
 
         <div className="flex justify-end mt-4">
@@ -457,10 +469,15 @@ const OrdersOverviewChart = ({ data }) => {
 // Restaurant Performance Table Component
 const RestaurantPerformanceTable = ({ restaurants }) => {
   const getRestaurantBorder = (restaurant) => {
-    if (restaurant === 'Big Ben') return 'border-l-4 border-orange-500';
-    if (restaurant === 'Akornor') return 'border-l-4 border-green-500';
-    if (restaurant === 'Hallmark') return 'border-l-4 border-blue-500';
-    return '';
+    const name = restaurant?.name || '';
+    // Use the first letter of restaurant name to determine a consistent color
+    const firstChar = name.charAt(0).toLowerCase();
+    
+    if (firstChar >= 'a' && firstChar <= 'h') return 'border-l-4 border-blue-500';
+    if (firstChar >= 'i' && firstChar <= 'p') return 'border-l-4 border-green-500';
+    if (firstChar >= 'q' && firstChar <= 'z') return 'border-l-4 border-orange-500';
+    
+    return 'border-l-4 border-gray-500';
   };
 
   return (
@@ -471,30 +488,37 @@ const RestaurantPerformanceTable = ({ restaurants }) => {
       </div>
 
       <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead className="text-left p-3">Restaurant</TableHead>
-              <TableHead className="text-left p-3">Orders Today</TableHead>
-              <TableHead className="text-left p-3">Revenue</TableHead>
-              <TableHead className="text-left p-3">Rating</TableHead>
-              <TableHead className="text-left p-3">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {restaurants.map((restaurant) => (
-              <TableRow key={restaurant.name} className={getRestaurantBorder(restaurant.name)}>
-                <TableCell className="p-3">{restaurant.name}</TableCell>
-                <TableCell className="p-3">{restaurant.orders}</TableCell>
-                <TableCell className="p-3">₵{restaurant.revenue.toFixed(2)}</TableCell>
-                <TableCell className="p-3">{restaurant.rating}/5</TableCell>
-                <TableCell className="p-3">
-                  <Button variant="outline" size="sm">View</Button>
-                </TableCell>
+        {restaurants.length === 0 ? (
+          <div className="bg-white p-6 rounded-lg text-center">
+            <p className="text-gray-500 mb-2">No restaurant data available.</p>
+            <p className="text-sm text-gray-400">Restaurant information will appear here when data is available.</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50">
+                <TableHead className="text-left p-3">Restaurant</TableHead>
+                <TableHead className="text-left p-3">Orders Today</TableHead>
+                <TableHead className="text-left p-3">Revenue</TableHead>
+                <TableHead className="text-left p-3">Rating</TableHead>
+                <TableHead className="text-left p-3">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {restaurants.map((restaurant) => (
+                <TableRow key={restaurant.id} className={getRestaurantBorder(restaurant)}>
+                  <TableCell className="p-3">{restaurant.name || 'Unnamed'}</TableCell>
+                  <TableCell className="p-3">{restaurant.orders || 0}</TableCell>
+                  <TableCell className="p-3">₵{(restaurant.revenue || 0).toFixed(2)}</TableCell>
+                  <TableCell className="p-3">{restaurant.rating || 0}/5</TableCell>
+                  <TableCell className="p-3">
+                    <Button variant="outline" size="sm">View</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
   );
@@ -502,10 +526,18 @@ const RestaurantPerformanceTable = ({ restaurants }) => {
 
 // Restaurant Order Distribution Chart Component
 const RestaurantOrderDistributionChart = ({ data }) => {
-  const restaurantColors = {
-    'Big Ben': '#FF5722',
-    'Akornor': '#4CAF50',
-    'Hallmark': '#2196F3',
+  // Generate colors dynamically based on restaurant name
+  const getRestaurantColor = (name) => {
+    // Use a basic hash function to generate a number from the name
+    const hash = Array.from(name || '').reduce(
+      (acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0
+    );
+    
+    // Use a set of predefined colors for consistency
+    const colors = ['#4CAF50', '#2196F3', '#FF5722', '#9C27B0', '#FFC107', '#03A9F4'];
+    const index = Math.abs(hash) % colors.length;
+    
+    return colors[index];
   };
 
   return (
@@ -522,7 +554,7 @@ const RestaurantOrderDistributionChart = ({ data }) => {
           <Legend />
           <Bar dataKey="orders" fill="#8884d8">
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={restaurantColors[entry.name] || '#8884d8'} />
+              <Cell key={`cell-${index}`} fill={getRestaurantColor(entry.name)} />
             ))}
           </Bar>
         </BarChart>
@@ -610,18 +642,130 @@ const AshesiEatsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Transform order data into chart data
+  const generateOrdersChartData = (orders) => {
+    if (!orders || orders.length === 0) return [];
+    
+    // Group orders by date
+    const ordersByDate = orders.reduce((acc, order) => {
+      // Extract date from order timestamp or use order date if available
+      const orderDate = order.order_time 
+        ? new Date(order.order_time).toLocaleDateString('en-US', { weekday: 'short' })
+        : (order.date || 'Unknown');
+      
+      // Calculate order amount
+      const amount = order.total_amount || order.amount || 0;
+      
+      // If this date already exists in our accumulator, update it
+      if (acc[orderDate]) {
+        acc[orderDate].orders += 1;
+        acc[orderDate].revenue += Number(amount);
+      } else {
+        // Otherwise create a new entry
+        acc[orderDate] = {
+          order_date: orderDate,
+          orders: 1,
+          revenue: Number(amount)
+        };
+      }
+      
+      return acc;
+    }, {});
+    
+    // Convert the object to an array of values
+    return Object.values(ordersByDate);
+  };
+
+  useEffect(() => {
+    // Initialize menu items for sidebar
+    setMenuItems([
+      { name: 'Dashboard', icon: '📊' },
+      { name: 'Orders', icon: '📋' },
+      { name: 'Restaurants', icon: '🍽️' },
+      { name: 'Delivery', icon: '🚚' },
+      { name: 'Students', icon: '👥' },
+      { name: 'Payments', icon: '💰' },
+      { name: 'Settings', icon: '⚙️' },
+    ]);
+  }, []);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Parallel requests
-      const [orders, restaurants, statsData] = await Promise.all([
-        OrderService.getAll(),
-        fetch('/api/restaurants').then(res => res.json()),
-        fetch('/api/stats').then(res => res.json())
-      ]);
-
-      setOrders(orders);
-      setRestaurants(restaurants);
+      // Make individual requests with error handling for each
+      let ordersData = [];
+      let restaurantsData = [];
+      let statsData = { totalOrders: 0, totalRevenue: 0, activeStudents: 0, deliveryTime: 0 };
+      
+      try {
+        ordersData = await OrderService.getAll();
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+        ordersData = [];
+      }
+      
+      try {
+        // Fetch restaurants with their statistics
+        const restaurantIds = [1, 2, 3]; // The three restaurant IDs
+        const restaurants = [];
+        
+        for (const id of restaurantIds) {
+          try {
+            // Fetch restaurant details
+            const restaurantRes = await fetch(`http://localhost:3000/api/restaurants/${id}`);
+            if (!restaurantRes.ok) continue;
+            
+            const restaurantData = await restaurantRes.json();
+            
+            // Fetch restaurant stats (orders, revenue, rating) - handle potential 404
+            try {
+              const statsRes = await fetch(`http://localhost:3000/api/restaurants/${id}/stats`);
+              let statsData = { orders: 0, revenue: 0, rating: 0 };
+              
+              if (statsRes.ok) {
+                statsData = await statsRes.json();
+              }
+              
+              // Combine restaurant data with its stats
+              restaurants.push({
+                ...restaurantData,
+                orders: statsData.orders || 0,
+                revenue: statsData.revenue || 0,
+                rating: statsData.rating || 4.0
+              });
+            } catch (statsErr) {
+              console.error(`Error fetching stats for restaurant ${id}:`, statsErr);
+              // Still add the restaurant with default stats
+              restaurants.push({
+                ...restaurantData,
+                orders: 0,
+                revenue: 0,
+                rating: 4.0
+              });
+            }
+          } catch (err) {
+            console.error(`Error fetching restaurant ${id}:`, err);
+          }
+        }
+        
+        restaurantsData = restaurants;
+      } catch (err) {
+        console.error('Error fetching restaurants:', err);
+        restaurantsData = [];
+      }
+      
+      try {
+        const statsResponse = await fetch('http://localhost:3000/api/stats');
+        if (statsResponse.ok) {
+          statsData = await statsResponse.json();
+        }
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+        // Use default stats
+      }
+      
+      setOrders(ordersData);
+      setRestaurants(restaurantsData);
       setStats({
         totalOrders: statsData.totalOrders || 0,
         totalRevenue: statsData.totalRevenue || 0,
@@ -631,6 +775,15 @@ const AshesiEatsDashboard = () => {
     } catch (err) {
       setError('Failed to fetch data');
       console.error('Error fetching data:', err);
+      // Initialize with empty arrays
+      setOrders([]);
+      setRestaurants([]);
+      setStats({
+        totalOrders: 0,
+        totalRevenue: 0,
+        activeStudents: 0,
+        deliveryTime: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -648,6 +801,20 @@ const AshesiEatsDashboard = () => {
     orderSubject.subscribe(handleOrderChange);
     return () => orderSubject.unsubscribe(handleOrderChange);
   }, []);
+
+  // Use real data from the API - no mock data
+  const prepareRestaurantData = () => {
+    if (!restaurants || restaurants.length === 0) return [];
+    
+    // Just return the restaurants directly - they already have real data
+    return restaurants;
+  };
+
+  // Prepare restaurant data for charts using real data
+  const restaurantChartData = restaurants.map(restaurant => ({
+    name: restaurant.name,
+    orders: restaurant.orders || 0
+  }));
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -680,16 +847,48 @@ const AshesiEatsDashboard = () => {
         {/* Main Content */}
         <div className="flex-1 p-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-            <p className="text-gray-600">Welcome to your dashboard</p>
-          </div>
+          <Header />
 
           {/* Content based on active tab */}
           {activeTab === 'Dashboard' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Add your dashboard content here */}
-            </div>
+            <>
+              {/* Stats Cards - First row, full width */}
+              <StatsCards 
+                totalOrders={stats.totalOrders} 
+                totalRevenue={stats.totalRevenue} 
+                activeStudents={stats.activeStudents} 
+                deliveryTime={stats.deliveryTime} 
+              />
+              
+              {/* Second row: Orders Overview Chart - only show if there's data */}
+              {orders.length > 0 ? (
+                <OrdersOverviewChart 
+                  data={generateOrdersChartData(orders)}
+                />
+              ) : (
+                <div className="bg-white p-6 rounded-lg shadow mb-8 text-center">
+                  <p className="text-gray-500 mb-2">No order data available for chart visualization.</p>
+                  <p className="text-sm text-gray-400">Charts will appear here when orders are placed.</p>
+                </div>
+              )}
+              
+              {/* Third row: Recent Orders Table - full width */}
+              <div className="mb-8">
+                <RecentOrdersTable 
+                  orders={orders} 
+                  onRefresh={fetchData} 
+                />
+              </div>
+              
+              {/* Fourth row: Restaurant Performance and Distribution - side by side */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <RestaurantPerformanceTable restaurants={restaurants} />
+                <RestaurantOrderDistributionChart data={restaurants.map(r => ({
+                  name: r.name,
+                  orders: r.orders || 0
+                }))} />
+              </div>
+            </>
           )}
           
           {/* Add other tab content here */}

@@ -1,16 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import RestaurantCard from "../components/Restaurant_Card.jsx";
 import Api from "../components/Api.jsx";
 import akonnorImage from "../assets/akonnor.jpg";
 import munchiesImage from "../assets/test2.png";
 import hallmarkImage from "../assets/test.png";
 import mainImage from "../assets/dinning.png";
-import { PaymentProvider, usePayment } from "../contexts/PaymentContext.jsx";
-import MobileMoneyPayment from "../features/payments/MobileMoneyPayment.jsx";
+import { useAuth } from "../context/AuthContext";
 
 const HomePage = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [showLoginMsg, setShowLoginMsg] = useState(false);
+
+  const handleViewAllRestaurants = () => {
+    if (isAuthenticated) {
+      navigate('/RestaurantProfiles');
+    } else {
+      setShowLoginMsg(true);
+      setTimeout(() => setShowLoginMsg(false), 3000);
+    }
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      {/* Login message tooltip */}
+      {showLoginMsg && (
+        <div className="fixed top-24 right-0 left-0 mx-auto w-max bg-red-600 text-white py-2 px-4 rounded-lg shadow-lg z-50 animate-fade-in-down">
+          Please log in to view restaurants
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="relative h-[80vh]">
         <div
@@ -45,6 +65,7 @@ const HomePage = () => {
               color="red" 
               image={akonnorImage}
               description="Authentic Ghanaian cuisine with a modern twist"
+              id={1}
             />
           </div>
           <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
@@ -53,6 +74,7 @@ const HomePage = () => {
               color="blue" 
               image={munchiesImage}
               description="Quick bites and snacks for your busy schedule"
+              id={3}
             />
           </div>
           <div className="transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
@@ -61,13 +83,17 @@ const HomePage = () => {
               color="green" 
               image={hallmarkImage}
               description="Premium dining experience with international flavors"
+              id={2}
             />
           </div>
         </div>
 
         {/* View All Button */}
         <div className="text-center mt-12">
-          <button className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors duration-300">
+          <button 
+            onClick={handleViewAllRestaurants}
+            className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors duration-300"
+          >
             View All Restaurants
           </button>
         </div>

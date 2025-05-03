@@ -1,5 +1,5 @@
 const express = require('express');
-const { executeQuery } = require('../db/connection');
+const { executeQuery, pool } = require('../db/connection');
 
 const router = express.Router();
 
@@ -7,11 +7,11 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const [orders] = await executeQuery(`
-      SELECT o.*, r.name as restaurant_name, u.name as student_name 
-      FROM Orders o
-      JOIN Restaurants r ON o.restaurant_id = r.id
-      JOIN Users u ON o.student_id = u.id
-      ORDER BY o.created_at DESC
+      SELECT o.*, r.name as restaurant_name, CONCAT(u.first_name, ' ', u.last_name) as user_name 
+      FROM orders o
+      JOIN restaurants r ON o.restaurant_id = r.id
+      JOIN users u ON o.user_id = u.user_id
+      ORDER BY o.order_time DESC
     `);
     res.json(orders);
   } catch (error) {
@@ -24,18 +24,32 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const [orders] = await executeQuery(`
-      SELECT o.*, r.name as restaurant_name, u.name as student_name 
-      FROM Orders o
-      JOIN Restaurants r ON o.restaurant_id = r.id
-      JOIN Users u ON o.student_id = u.id
-      WHERE o.id = ?
+      SELECT o.*, r.name as restaurant_name, CONCAT(u.first_name, ' ', u.last_name) as user_name 
+      FROM orders o
+      JOIN restaurants r ON o.restaurant_id = r.id
+      JOIN users u ON o.user_id = u.user_id
+      WHERE o.order_id = ?
     `, [req.params.id]);
 
     if (orders.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    res.json(orders[0]);
+    // Get order items
+    const [orderItems] = await executeQuery(`
+      SELECT oi.*, mi.item_name, mi.description 
+      FROM orderitems oi
+      JOIN menuitems mi ON oi.item_id = mi.item_id
+      WHERE oi.order_id = ?
+    `, [req.params.id]);
+
+    // Combine order with its items
+    const orderWithItems = {
+      ...orders[0],
+      items: orderItems
+    };
+
+    res.json(orderWithItems);
   } catch (error) {
     console.error('Error fetching order:', error);
     res.status(500).json({ error: 'Failed to fetch order' });
@@ -44,40 +58,93 @@ router.get('/:id', async (req, res) => {
 
 // Create new order
 router.post('/', async (req, res) => {
+  const connection = await pool.getConnection();
+  
   try {
-    const { student_id, restaurant_id, items, total_amount } = req.body;
-    
-    // Start a transaction
-    const connection = await pool.getConnection();
     await connection.beginTransaction();
-
-    try {
-      // Create the order
-      const [result] = await connection.execute(
-        'INSERT INTO Orders (student_id, restaurant_id, items, total_amount, status) VALUES (?, ?, ?, ?, ?)',
-        [student_id, restaurant_id, JSON.stringify(items), total_amount, 'pending']
+    
+    const { 
+      user_id, 
+      restaurant_id, 
+      delivery_location, 
+      delivery_option, 
+      delivery_time_option,
+      scheduled_delivery_time,
+      payment_method,
+      items 
+    } = req.body;
+    
+    // Calculate total amount from items
+    const total_amount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Create the order
+    const [orderResult] = await connection.query(
+      `INSERT INTO orders (
+        user_id, 
+        restaurant_id, 
+        delivery_location, 
+        delivery_option, 
+        delivery_time_option,
+        scheduled_delivery_time,
+        total_amount,
+        payment_method,
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        user_id, 
+        restaurant_id, 
+        delivery_location, 
+        delivery_option, 
+        delivery_time_option || 'Now',
+        scheduled_delivery_time || null,
+        total_amount,
+        payment_method,
+        'pending'
+      ]
+    );
+    
+    const orderId = orderResult.insertId;
+    
+    // Insert order items
+    for (const item of items) {
+      await connection.query(
+        'INSERT INTO orderitems (order_id, item_id, quantity, item_price_at_order) VALUES (?, ?, ?, ?)',
+        [orderId, item.item_id, item.quantity, item.price]
       );
-
-      // Get the created order with details
-      const [orders] = await connection.execute(`
-        SELECT o.*, r.name as restaurant_name, u.name as student_name 
-        FROM Orders o
-        JOIN Restaurants r ON o.restaurant_id = r.id
-        JOIN Users u ON o.student_id = u.id
-        WHERE o.id = ?
-      `, [result.insertId]);
-
-      await connection.commit();
-      res.status(201).json(orders[0]);
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
     }
+    
+    await connection.commit();
+    
+    // Get the created order with details
+    const [orders] = await connection.query(`
+      SELECT o.*, r.name as restaurant_name, CONCAT(u.first_name, ' ', u.last_name) as user_name 
+      FROM orders o
+      JOIN restaurants r ON o.restaurant_id = r.id
+      JOIN users u ON o.user_id = u.user_id
+      WHERE o.order_id = ?
+    `, [orderId]);
+    
+    // Get order items
+    const [orderItems] = await connection.query(`
+      SELECT oi.*, mi.item_name, mi.description 
+      FROM orderitems oi
+      JOIN menuitems mi ON oi.item_id = mi.item_id
+      WHERE oi.order_id = ?
+    `, [orderId]);
+    
+    // Combine order with its items
+    const orderWithItems = {
+      ...orders[0],
+      items: orderItems
+    };
+
+    res.status(201).json(orderWithItems);
   } catch (error) {
+    await connection.rollback();
     console.error('Error creating order:', error);
     res.status(500).json({ error: 'Failed to create order' });
+  } finally {
+    connection.release();
   }
 });
 
@@ -85,14 +152,14 @@ router.post('/', async (req, res) => {
 router.patch('/:id/status', async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ['pending', 'preparing', 'ready', 'delivered'];
+    const validStatuses = ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'delivered', 'cancelled'];
     
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
     const [result] = await executeQuery(
-      'UPDATE Orders SET status = ? WHERE id = ?',
+      'UPDATE orders SET status = ? WHERE order_id = ?',
       [status, req.params.id]
     );
 
@@ -102,55 +169,130 @@ router.patch('/:id/status', async (req, res) => {
 
     // Get updated order with details
     const [orders] = await executeQuery(`
-      SELECT o.*, r.name as restaurant_name, u.name as student_name 
-      FROM Orders o
-      JOIN Restaurants r ON o.restaurant_id = r.id
-      JOIN Users u ON o.student_id = u.id
-      WHERE o.id = ?
+      SELECT o.*, r.name as restaurant_name, CONCAT(u.first_name, ' ', u.last_name) as user_name 
+      FROM orders o
+      JOIN restaurants r ON o.restaurant_id = r.id
+      JOIN users u ON o.user_id = u.user_id
+      WHERE o.order_id = ?
     `, [req.params.id]);
+    
+    // Get order items
+    const [orderItems] = await executeQuery(`
+      SELECT oi.*, mi.item_name, mi.description 
+      FROM orderitems oi
+      JOIN menuitems mi ON oi.item_id = mi.item_id
+      WHERE oi.order_id = ?
+    `, [req.params.id]);
+    
+    // Combine order with its items
+    const orderWithItems = {
+      ...orders[0],
+      items: orderItems
+    };
 
-    res.json(orders[0]);
+    res.json(orderWithItems);
   } catch (error) {
     console.error('Error updating order status:', error);
     res.status(500).json({ error: 'Failed to update order status' });
   }
 });
 
-// Get orders by student
-router.get('/student/:studentId', async (req, res) => {
+// Get orders by user
+router.get('/user/:userId', async (req, res) => {
   try {
     const [orders] = await executeQuery(`
-      SELECT o.*, r.name as restaurant_name, u.name as student_name 
-      FROM Orders o
-      JOIN Restaurants r ON o.restaurant_id = r.id
-      JOIN Users u ON o.student_id = u.id
-      WHERE o.student_id = ?
-      ORDER BY o.created_at DESC
-    `, [req.params.studentId]);
+      SELECT o.*, r.name as restaurant_name, CONCAT(u.first_name, ' ', u.last_name) as user_name 
+      FROM orders o
+      JOIN restaurants r ON o.restaurant_id = r.id
+      JOIN users u ON o.user_id = u.user_id
+      WHERE o.user_id = ?
+      ORDER BY o.order_time DESC
+    `, [req.params.userId]);
+    
+    // For each order, get its items
+    const ordersWithItems = await Promise.all(orders.map(async (order) => {
+      const [orderItems] = await executeQuery(`
+        SELECT oi.*, mi.item_name, mi.description 
+        FROM orderitems oi
+        JOIN menuitems mi ON oi.item_id = mi.item_id
+        WHERE oi.order_id = ?
+      `, [order.order_id]);
+      
+      return {
+        ...order,
+        items: orderItems
+      };
+    }));
 
-    res.json(orders);
+    res.json(ordersWithItems);
   } catch (error) {
-    console.error('Error fetching student orders:', error);
-    res.status(500).json({ error: 'Failed to fetch student orders' });
+    console.error('Error fetching user orders:', error);
+    res.status(500).json({ error: 'Failed to fetch user orders' });
   }
 });
 
+// Get orders by restaurant
 router.get('/restaurant/:restaurantId', async (req, res) => {
   try {
     const [orders] = await executeQuery(`
-      SELECT o.*, r.name as restaurant_name, CONCAT(u.first_name, ' ', u.last_name) as student_name 
-      FROM Orders o
-      JOIN Restaurants r ON o.restaurant_id = r.id
-      JOIN Users u ON o.user_id = u.user_id
+      SELECT o.*, r.name as restaurant_name, CONCAT(u.first_name, ' ', u.last_name) as user_name 
+      FROM orders o
+      JOIN restaurants r ON o.restaurant_id = r.id
+      JOIN users u ON o.user_id = u.user_id
       WHERE o.restaurant_id = ?
       ORDER BY o.order_time DESC
     `, [req.params.restaurantId]);
+    
+    // For each order, get its items
+    const ordersWithItems = await Promise.all(orders.map(async (order) => {
+      const [orderItems] = await executeQuery(`
+        SELECT oi.*, mi.item_name, mi.description 
+        FROM orderitems oi
+        JOIN menuitems mi ON oi.item_id = mi.item_id
+        WHERE oi.order_id = ?
+      `, [order.order_id]);
+      
+      return {
+        ...order,
+        items: orderItems
+      };
+    }));
 
-    res.json(orders);
+    res.json(ordersWithItems);
   } catch (error) {
     console.error('Error fetching restaurant orders:', error);
     res.status(500).json({ error: 'Failed to fetch restaurant orders' });
   }
 });
 
-module.exports = router; 
+// Assign delivery person to order
+router.patch('/:id/assign-delivery', async (req, res) => {
+  try {
+    const { delivery_person_id } = req.body;
+    
+    const [result] = await executeQuery(
+      'UPDATE orders SET delivery_person_id = ? WHERE order_id = ?',
+      [delivery_person_id, req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Get updated order with details
+    const [orders] = await executeQuery(`
+      SELECT o.*, r.name as restaurant_name, CONCAT(u.first_name, ' ', u.last_name) as user_name 
+      FROM orders o
+      JOIN restaurants r ON o.restaurant_id = r.id
+      JOIN users u ON o.user_id = u.user_id
+      WHERE o.order_id = ?
+    `, [req.params.id]);
+
+    res.json(orders[0]);
+  } catch (error) {
+    console.error('Error assigning delivery person:', error);
+    res.status(500).json({ error: 'Failed to assign delivery person' });
+  }
+});
+
+module.exports = router;

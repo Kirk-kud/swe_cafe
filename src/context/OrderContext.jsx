@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import axios from 'axios';
 
+// Define the base API URL - change this to your actual backend URL
+const API_BASE_URL = 'http://localhost:3000'; // Assuming your backend runs on port 3000
+
 const OrderContext = createContext(null);
 
 export const OrderProvider = ({ children }) => {
@@ -99,38 +102,43 @@ export const OrderProvider = ({ children }) => {
     try {
       console.log('Submitting order with payment method:', paymentMethod);
       
+      // Ensure delivery location is never empty for pickup options
+      const finalDeliveryLocation = deliveryOption === 'pickup' ? 'Pickup at restaurant' : deliveryLocation || 'Not specified';
+      
       const orderData = {
         user_id: userId,
         restaurant_id: currentOrder.restaurantId,
-        delivery_location: deliveryLocation,
+        delivery_location: finalDeliveryLocation,
         delivery_option: deliveryOption,
         payment_method: paymentMethod,
         total_amount: currentOrder.total,
+        status: 'pending', // Add a default status
         items: currentOrder.items.map(item => ({
           item_id: item.item_id || item.id,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
+          name: item.name || item.title || 'Item' // Ensure item has a name
         }))
       };
       
       console.log('Order data:', orderData);
       
-      // Use a mock order for now since we don't have a backend endpoint
-      // In a real application, you would uncomment this and use a real endpoint
-      // const response = await axios.post('http://localhost:3000/api/orders', orderData);
-      
-      // Mock response for development
-      const mockResponse = {
-        success: true,
-        order_id: 'ORD' + Math.floor(Math.random() * 10000),
-        message: 'Order placed successfully'
-      };
-      
-      // For development/testing - simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      clearOrder();
-      return mockResponse;
+      try {
+        // Use the full API URL instead of a relative path
+        const response = await axios.post(`${API_BASE_URL}/api/orders`, orderData, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000, // 10 second timeout
+          withCredentials: true // Include credentials if using cookies for auth
+        });
+        
+        clearOrder();
+        return response.data;
+      } catch (apiError) {
+        console.error('Order submission error:', apiError.response?.data || apiError.message);
+        throw new Error(apiError.response?.data?.message || apiError.response?.data?.error || 'Failed to submit order. Please try again.');
+      }
     } catch (error) {
       console.error('Error submitting order:', error);
       throw error;

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 03, 2025 at 03:16 PM
+-- Generation Time: May 03, 2025 at 11:11 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -141,22 +141,22 @@ CREATE TABLE `menuitems` (
 --
 
 INSERT INTO `menuitems` (`item_id`, `category_id`, `item_name`, `description`, `price`, `nutritional_info`, `preparation_time`, `is_vegetarian`, `contains_allergens`, `is_available`, `image_url`, `restaurant_id`) VALUES
-(1, 1, 'Pancakes & Syrup', 'Fluffy pancakes served with maple syrup', 15.00, '300 kcal', 10, 1, 'gluten, eggs', 1, 'images/pancakes.jpg', 1),
-(2, 2, 'Jollof Rice with Chicken', 'Classic Ghanaian jollof served with grilled chicken', 25.00, '600 kcal', 20, 0, 'none', 1, 'images/jollof.jpg', 1),
-(3, 3, 'Fresh Orange Juice', 'Freshly squeezed orange juice', 10.00, '100 kcal', 5, 1, 'none', 1, 'images/orange_juice.jpg', 1),
-(4, 4, 'Meat Pie', 'Savory pastry with meat filling', 5.00, '250 kcal', 8, 0, 'gluten', 1, 'images/meat_pie.jpg', 1),
-(5, 1, 'Jollof Rice with Chicken', 'Spicy rice with grilled chicken', 25.00, NULL, 15, 0, NULL, 1, 'https://example.com/jollof.jpg', 1),
-(6, 1, 'Waakye Special', 'Rice and beans with gari and spaghetti', 30.00, NULL, 20, 0, NULL, 1, 'https://example.com/waakye.jpg', 1),
-(7, 2, 'Kelewele', 'Spicy fried plantains', 10.00, NULL, 10, 0, NULL, 1, 'https://example.com/kelewele.jpg', 1),
-(8, 3, 'Fresh Fruit Juice', 'Seasonal fruit blend', 8.00, NULL, 5, 0, NULL, 1, 'https://example.com/juice.jpg', 1),
-(9, 1, 'Spaghetti Carbonara', 'Classic Italian pasta dish', 35.00, NULL, 15, 0, NULL, 1, 'https://example.com/carbonara.jpg', 1),
-(10, 1, 'Grilled Salmon', 'Fresh salmon with vegetables', 45.00, NULL, 20, 0, NULL, 1, 'https://example.com/salmon.jpg', 3),
-(11, 2, 'Garlic Bread', 'Freshly baked with garlic butter', 12.00, NULL, 5, 0, NULL, 1, 'https://example.com/garlic-bread.jpg', 1),
-(12, 3, 'Iced Coffee', 'Cold brewed coffee with milk', 15.00, NULL, 5, 0, NULL, 1, 'https://example.com/iced-coffee.jpg', 1),
-(13, 1, 'Chicken Burger', 'Grilled chicken with fresh vegetables', 20.00, NULL, 10, 0, NULL, 1, 'https://example.com/chicken-burger.jpg', 2),
-(14, 1, 'French Fries', 'Crispy golden fries', 12.00, NULL, 8, 0, NULL, 1, 'https://example.com/fries.jpg', 1),
-(15, 2, 'Onion Rings', 'Crispy battered onion rings', 15.00, NULL, 8, 0, NULL, 1, 'https://example.com/onion-rings.jpg', 1),
-(16, 3, 'Milkshake', 'Creamy vanilla milkshake', 18.00, NULL, 5, 0, NULL, 1, 'https://example.com/milkshake.jpg', 1);
+(1, 1, 'Pancakes & Syrup', 'Fluffy pancakes served with maple syrup', 15.00, '300 kcal', 10, 1, 'gluten, eggs', 1, 'https://images.pexels.com/photos/30892992/pexels-photo-30892992/free-photo-of-delicious-pancakes-with-honey-and-strawberries.jpeg?auto=compress&cs=tinysrgb&w=600', 1),
+(2, 2, 'Jollof Rice with Chicken', 'Classic Ghanaian jollof served with grilled chicken', 25.00, '600 kcal', 20, 0, 'none', 1, 'https://t4.ftcdn.net/jpg/08/36/33/67/360_F_836336748_QSgGUTSRyytsh6vER8Qi6mOqmLQUUKv8.jpg', 2),
+(3, 3, 'Fresh Orange Juice', 'Freshly squeezed orange juice', 10.00, '100 kcal', 5, 1, 'none', 1, 'https://images.pexels.com/photos/158053/fresh-orange-juice-squeezed-refreshing-citrus-158053.jpeg?auto=compress&cs=tinysrgb&w=600', 1),
+(4, 4, 'Meat Pie', 'Savory pastry with meat filling', 5.00, '250 kcal', 8, 0, 'gluten', 1, 'https://images.pexels.com/photos/7906867/pexels-photo-7906867.jpeg?auto=compress&cs=tinysrgb&w=600', 0),
+(5, 1, 'Jollof Rice with Chicken', 'Spicy rice with grilled chicken', 25.00, NULL, 15, 0, NULL, 1, 'https://t4.ftcdn.net/jpg/11/41/76/91/240_F_1141769173_gnVznNtGycAdtJXO1eFL0F2U4UXtnvH3.jpg', 1),
+(6, 1, 'Waakye Special', 'Rice and beans with gari and spaghetti', 30.00, NULL, 20, 0, NULL, 1, 'https://i.pinimg.com/originals/ab/88/cb/ab88cb122f1c45e4677c21f84f0da199.jpg', 2),
+(7, 2, 'Kelewele', 'Spicy fried plantains', 10.00, NULL, 10, 0, NULL, 1, 'https://i.pinimg.com/736x/b7/82/ce/b782ce9fca73d563b063ba79ad6e44cc.jpg', 3),
+(8, 3, 'Fresh Fruit Juice', 'Seasonal fruit blend', 8.00, NULL, 5, 0, NULL, 1, 'https://images.pexels.com/photos/12973252/pexels-photo-12973252.jpeg?auto=compress&cs=tinysrgb&w=600', 1),
+(9, 1, 'Spaghetti Carbonara', 'Classic Italian pasta dish', 35.00, NULL, 15, 0, NULL, 1, 'https://images.pexels.com/photos/5710178/pexels-photo-5710178.jpeg?auto=compress&cs=tinysrgb&w=600', 2),
+(10, 1, 'Grilled Salmon', 'Fresh salmon with vegetables', 45.00, NULL, 20, 0, NULL, 1, 'https://images.pexels.com/photos/19532105/pexels-photo-19532105/free-photo-of-meat-rice-and-vegetables.jpeg?auto=compress&cs=tinysrgb&w=600', 3),
+(11, 2, 'Garlic Bread', 'Freshly baked with garlic butter', 12.00, NULL, 5, 0, NULL, 1, 'https://images.pexels.com/photos/5593702/pexels-photo-5593702.jpeg?auto=compress&cs=tinysrgb&w=600', 1),
+(12, 3, 'Iced Coffee', 'Cold brewed coffee with milk', 15.00, NULL, 5, 0, NULL, 1, 'https://images.pexels.com/photos/1162455/pexels-photo-1162455.jpeg?auto=compress&cs=tinysrgb&w=600', 1),
+(13, 1, 'Chicken Burger', 'Grilled chicken with fresh vegetables', 20.00, NULL, 10, 0, NULL, 1, 'https://images.pexels.com/photos/15662255/pexels-photo-15662255/free-photo-of-close-up-of-a-burger-and-fries.jpeg?auto=compress&cs=tinysrgb&w=600', 2),
+(14, 1, 'French Fries', 'Crispy golden fries', 12.00, NULL, 8, 0, NULL, 1, 'https://images.pexels.com/photos/115740/pexels-photo-115740.jpeg?auto=compress&cs=tinysrgb&w=600', 1),
+(15, 2, 'Onion Rings', 'Crispy battered onion rings', 15.00, NULL, 8, 0, NULL, 1, 'https://images.pexels.com/photos/263049/pexels-photo-263049.jpeg?auto=compress&cs=tinysrgb&w=600', 1),
+(16, 3, 'Milkshake', 'Creamy vanilla milkshake', 18.00, NULL, 5, 0, NULL, 1, 'https://images.pexels.com/photos/3727250/pexels-photo-3727250.jpeg?auto=compress&cs=tinysrgb&w=600', 1);
 
 -- --------------------------------------------------------
 
@@ -201,7 +201,8 @@ CREATE TABLE `orderitems` (
 INSERT INTO `orderitems` (`order_item_id`, `order_id`, `item_id`, `quantity`, `item_price_at_order`) VALUES
 (1, 1, 2, 1, 25.00),
 (2, 1, 4, 2, 5.00),
-(3, 1, 3, 1, 10.00);
+(3, 1, 3, 1, 10.00),
+(4, 2, 3, 1, 10.00);
 
 -- --------------------------------------------------------
 
@@ -229,7 +230,8 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `user_id`, `restaurant_id`, `delivery_person_id`, `order_time`, `delivery_location`, `delivery_option`, `delivery_time_option`, `scheduled_delivery_time`, `status`, `total_amount`, `payment_method`) VALUES
-(1, 1, 1, 1, '2025-04-30 23:53:02', 'Charlotte', 'delivery', 'ASAP', NULL, 'delivered', 45.00, 'account');
+(1, 1, 1, 1, '2025-04-30 23:53:02', 'Charlotte', 'delivery', 'ASAP', NULL, 'delivered', 45.00, 'account'),
+(2, 1, 1, NULL, '2025-05-03 19:32:40', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 10.00, 'account');
 
 -- --------------------------------------------------------
 
@@ -257,6 +259,50 @@ INSERT INTO `restaurants` (`id`, `name`, `description`, `image_url`, `rating`, `
 (1, 'Akornor', 'Authentic Ghanaian cuisine with a modern twist', 'https://ashesi.edu.gh/wp-content/uploads/2019/09/Ashesi_Dining_e.jpg', 4.0, NULL, NULL, '2025-05-02 13:36:34', '2025-05-03 12:26:41'),
 (2, 'Hallmark', 'Premium dining experience with international flavors', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSipc5lfylgaTIHCfNWmXG9LhU87KjmRdMR9w&s', 4.1, NULL, NULL, '2025-05-02 13:36:34', '2025-05-03 12:58:59'),
 (3, 'Munchies', 'Quick bites and snacks for your busy schedule', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaZXzroLhQraiVZTXxqVrdyesPIz-BpJ_i0w&s', 3.7, NULL, NULL, '2025-05-02 13:36:34', '2025-05-03 12:59:04');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `restaurant_administrators`
+--
+
+CREATE TABLE `restaurant_administrators` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `restaurant_id` int(255) NOT NULL,
+  `permission_level` enum('full_access','menu_only','orders_only','reports_only') NOT NULL DEFAULT 'full_access',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `created_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `restaurant_administrators`
+--
+
+INSERT INTO `restaurant_administrators` (`id`, `user_id`, `restaurant_id`, `permission_level`, `created_at`, `created_by`) VALUES
+(1, 1, 1, 'full_access', '2025-05-03 19:04:02', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `restaurant_admins`
+--
+
+CREATE TABLE `restaurant_admins` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `restaurant_id` int(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `restaurant_admins`
+--
+
+INSERT INTO `restaurant_admins` (`id`, `user_id`, `restaurant_id`, `created_at`) VALUES
+(1, 6, 1, '2025-05-03 19:57:01'),
+(2, 7, 2, '2025-05-03 19:57:01'),
+(3, 8, 3, '2025-05-03 19:57:01');
 
 -- --------------------------------------------------------
 
@@ -300,7 +346,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `phone`, `password_hash`, `user_type`) VALUES
-(1, 'Kirk', 'Kudoto', 'kirk.kudoto@ashesi.edu.gh', '0503895451', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'student');
+(1, 'Kirk', 'Kudoto', 'kirk.kudoto@ashesi.edu.gh', '0503895451', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'student'),
+(6, 'Akornor', 'Admin', 'akornor.admin@ashesi.edu.gh', '0240123456', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'admin'),
+(7, 'Hallmark', 'Admin', 'hallmark.admin@ashesi.edu.gh', '0550987654', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'admin'),
+(8, 'Munchies', 'Admin', 'munchies.admin@ashesi.edu.gh', '0277456123', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'admin');
 
 --
 -- Indexes for dumped tables
@@ -371,6 +420,23 @@ ALTER TABLE `restaurants`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `restaurant_administrators`
+--
+ALTER TABLE `restaurant_administrators`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_restaurant_unique` (`user_id`,`restaurant_id`),
+  ADD KEY `fk_admin_user` (`user_id`),
+  ADD KEY `fk_admin_restaurant` (`restaurant_id`);
+
+--
+-- Indexes for table `restaurant_admins`
+--
+ALTER TABLE `restaurant_admins`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `restaurant_id` (`restaurant_id`);
+
+--
 -- Indexes for table `useraccounts`
 --
 ALTER TABLE `useraccounts`
@@ -422,13 +488,25 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `orderitems`
 --
 ALTER TABLE `orderitems`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `restaurant_administrators`
+--
+ALTER TABLE `restaurant_administrators`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `restaurant_admins`
+--
+ALTER TABLE `restaurant_admins`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `useraccounts`
@@ -440,7 +518,7 @@ ALTER TABLE `useraccounts`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Constraints for dumped tables
@@ -486,6 +564,20 @@ ALTER TABLE `orders`
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`delivery_person_id`) REFERENCES `deliverypersons` (`delivery_person_id`),
   ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`);
+
+--
+-- Constraints for table `restaurant_administrators`
+--
+ALTER TABLE `restaurant_administrators`
+  ADD CONSTRAINT `fk_admin_restaurant` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_admin_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `restaurant_admins`
+--
+ALTER TABLE `restaurant_admins`
+  ADD CONSTRAINT `restaurant_admins_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `restaurant_admins_ibfk_2` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`);
 
 --
 -- Constraints for table `useraccounts`

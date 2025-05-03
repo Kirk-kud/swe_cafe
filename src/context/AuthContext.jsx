@@ -47,6 +47,7 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (error) {
           console.error('Session check failed:', error);
+          // Don't clear token on network errors to allow offline usage with cached token
         }
       } catch (error) {
         console.error('Session check failed:', error);
@@ -63,27 +64,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      // For demo purposes, since we don't have an actual backend
-      // simulate a successful login with mock data
-      if (email && password) {
-        const mockUserData = {
-          id: 'user123',
-          email: email,
-          name: email.split('@')[0],
-          role: 'student'
-        };
-        
-        // Store token and user data in localStorage
-        localStorage.setItem('token', 'mock-jwt-token');
-        localStorage.setItem('user', JSON.stringify(mockUserData));
-        
-        // Set user state
-        setUser(mockUserData);
-        return { success: true };
-      }
-      
-      // If using a real backend, uncomment this code
-      /*
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,21 +78,32 @@ export const AuthProvider = ({ children }) => {
         return { success: true };
       } else {
         const error = await response.json();
-        return { success: false, error: error.message };
+        return { success: false, error: error.message || 'Login failed' };
       }
-      */
-      
-      return { success: false, error: 'Invalid credentials' };
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      console.error('Login error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
     }
   };
 
-  const logout = () => {
-    // Remove token and user data from localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await fetch('/api/auth/logout', { 
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+    }
   };
 
   const value = {
