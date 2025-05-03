@@ -4,14 +4,17 @@ import Navbar from "./components/Navbar.jsx";
 import Heading from "./components/heading.jsx";
 import Footer from "./components/Footer.jsx";
 import RestaurantProfiles from "./pages/RestaurantProfiles.jsx";
+import RestaurantDetailsPage from "./pages/RestaurantDetails.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import AshesiEatsDashboard from "./pages/admin/AshesiEatsDashboard.jsx";
 import CafeteriaManagement from "./pages/admin/CafeteriaManagement.jsx";
 import OrderTracker from "./components/OrderTracker.jsx";
+import OrderHistory from "./components/OrderHistory.jsx";
+import OrderDetails from "./pages/OrderDetails.jsx";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { OrderProvider } from './contexts/OrderContext';
+import { OrderProvider } from './context/OrderContext';
 import { PaymentProvider } from './contexts/PaymentContext';
 
 // Protected Route Component
@@ -29,61 +32,76 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-function App() {
+const App = () => {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <OrderProvider>
           <PaymentProvider>
-            <div className="min-h-screen bg-gray-50">
-              <header>
-                <Heading />
-                <Navbar />
-              </header>
-              <main>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-grow">
                 <Routes>
-                  <Route exact path="/" element={<HomePage />} />
-                  <Route exact path="/login" element={<Login />} />
-                  <Route exact path="/signup" element={<Signup />} />
-                  <Route exact path="/track-order" element={<OrderTracker />} />
-                  <Route
-                    exact
-                    path="/RestaurantProfiles"
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/RestaurantProfiles" element={<RestaurantProfiles />} />
+                  <Route path="/restaurant/:id" element={<RestaurantDetailsPage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  
+                  {/* Order tracking routes */}
+                  <Route 
+                    path="/orders" 
                     element={
                       <ProtectedRoute>
-                        <RestaurantProfiles />
+                        <OrderHistory />
                       </ProtectedRoute>
-                    }
+                    } 
                   />
-                  <Route
-                    exact
-                    path="/AshesiEatsDashboard"
+                  <Route 
+                    path="/orders/:orderId" 
+                    element={
+                      <ProtectedRoute>
+                        <OrderDetails />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  {/* Redirect /track-order to /orders */}
+                  <Route path="/track-order" element={<Navigate to="/orders" replace />} />
+                  
+                  {/* Admin routes */}
+                  <Route 
+                    path="/admin/dashboard" 
                     element={
                       <ProtectedRoute>
                         <AshesiEatsDashboard />
                       </ProtectedRoute>
-                    }
+                    } 
                   />
-                  <Route
-                    exact
-                    path="/CafeteriaManagement"
+                  <Route 
+                    path="/admin/cafeteria" 
                     element={
                       <ProtectedRoute>
                         <CafeteriaManagement />
                       </ProtectedRoute>
-                    }
+                    } 
+                  />
+                  <Route 
+                    path="/admin/cafeteria/:restaurantId" 
+                    element={
+                      <ProtectedRoute>
+                        <CafeteriaManagement />
+                      </ProtectedRoute>
+                    } 
                   />
                 </Routes>
               </main>
-              <footer>
-                <Footer />
-              </footer>
+              <Footer />
             </div>
           </PaymentProvider>
         </OrderProvider>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
-}
+};
 
 export default App;

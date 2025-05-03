@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -82,7 +83,21 @@ const Signup = () => {
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
                 placeholder="Full Name"
-                value={formData.fullName}
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="fullName" className="sr-only">Full Name</label>
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+                placeholder="Full Name"
+                value={formData.lastName}
                 onChange={handleChange}
               />
             </div>

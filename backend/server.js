@@ -49,7 +49,7 @@ async function testConnection() {
 testConnection();
 
 // JWT secret key
-const JWT_SECRET = process.env.JWT_SECRET || 'ashesi-eats-default-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || e1a91d4f76a5dd99e562086b0421d94be81809e37fcf3451b97cf8543551096d;
 
 // Middleware to verify JWT token
 const authenticateToken = async (req, res, next) => {
@@ -79,7 +79,7 @@ const authenticateToken = async (req, res, next) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     //1. Get user data from request body
-    const { fullName, email, password, studentId, phoneNumber } = req.body;
+    const { firstName, lastName, email, password, studentId, phoneNumber } = req.body;
 
     // 2. Validate required fields
     if (!fullName || !email || !password || !studentId) {
@@ -102,7 +102,7 @@ app.post('/api/auth/register', async (req, res) => {
     // 5. Insert new user into database
     const [result] = await pool.execute(
       'INSERT INTO Users (first_name, last_name, email, phone, password_hash, user_type) VALUES (?, ?, ?, ?, ?, ?)',
-      [fullName.split(' ')[0], fullName.split(' ')[1] || '', email, phoneNumber, hashedPassword, 'student']
+      [firstName, lastName, email, phoneNumber, hashedPassword, 'student']
     );
 
     // 6. Generate JWT token for authentication
@@ -115,7 +115,8 @@ app.post('/api/auth/register', async (req, res) => {
       user: {
         id: result.insertId,
         email,
-        fullName,
+        firstName,
+        lastName,
         studentId,
         phoneNumber
       }
@@ -191,7 +192,7 @@ app.get('/api/restaurants/:id', async (req, res) => {
     
     // Get restaurant details
     const [restaurants] = await pool.execute(
-      'SELECT * FROM Restaurants WHERE restaurant_id = ?',
+      'SELECT * FROM Restaurants WHERE id = ?',
       [id]
     );
 
@@ -219,6 +220,6 @@ app.get('/api/restaurants/:id', async (req, res) => {
 });
 
 // Start server
-app.listen(8080, () => {
-  console.log("✅ Server started on port 8080");
+app.listen(3000, () => {
+  console.log("✅ Server started on port 3000");
 });

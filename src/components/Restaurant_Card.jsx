@@ -1,8 +1,37 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const RestaurantCard = ({ text, color, image, description }) => {
+const RestaurantCard = ({ text, color, image, description, id }) => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [showLoginMsg, setShowLoginMsg] = useState(false);
+
+  const handleViewMenu = () => {
+    if (isAuthenticated) {
+      navigate(`/restaurant/${id || getRestaurantId(text)}`);
+    } else {
+      setShowLoginMsg(true);
+      setTimeout(() => setShowLoginMsg(false), 3000); // Hide message after 3 seconds
+    }
+  };
+
+  // Helper function to get restaurant ID based on name
+  const getRestaurantId = (name) => {
+    switch(name.toLowerCase()) {
+      case 'akornor':
+        return 1;
+      case 'hallmark':
+        return 2;
+      case 'munchies':
+        return 3;
+      default:
+        return 1;
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-lg">
+    <div className="bg-white rounded-xl overflow-hidden shadow-lg relative">
       {/* Restaurant Image */}
       <div className="relative h-48 overflow-hidden">
         <img
@@ -33,11 +62,21 @@ const RestaurantCard = ({ text, color, image, description }) => {
             </svg>
             <span className="ml-1 text-sm text-gray-600">4.8 (120 reviews)</span>
           </div>
-          <button className="text-red-600 hover:text-red-700 font-medium">
+          <button 
+            onClick={handleViewMenu} 
+            className="text-red-600 hover:text-red-700 font-medium"
+          >
             View Menu →
           </button>
         </div>
       </div>
+
+      {/* Login message tooltip */}
+      {showLoginMsg && (
+        <div className="absolute bottom-20 right-0 left-0 mx-auto w-max bg-red-600 text-white py-2 px-4 rounded-lg shadow-lg animate-fade-in-up">
+          Please log in to view the menu
+        </div>
+      )}
     </div>
   );
 };

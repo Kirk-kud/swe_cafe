@@ -16,7 +16,7 @@ app.use(express.json());
 
 // CORS options
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: "http://localhost:5173",
   credentials: true
 };
 
@@ -181,7 +181,7 @@ app.get('/api/restaurants/:id', async (req, res) => {
     
     // Get restaurant details
     const [restaurants] = await pool.execute(
-      'SELECT * FROM Restaurants WHERE restaurant_id = ?',
+      'SELECT * FROM Restaurants WHERE id = ?',
       [id]
     );
 
@@ -205,6 +205,92 @@ app.get('/api/restaurants/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching restaurant:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get all restaurants
+app.get('/api/restaurants', async (req, res) => {
+  try {
+    // Get all restaurants
+    const [restaurants] = await pool.execute('SELECT * FROM Restaurants');
+    res.json(restaurants);
+  } catch (error) {
+    console.error('Error fetching restaurants:', error);
+    res.status(500).json([]);
+  }
+});
+
+// Get restaurant stats for dashboard
+app.get('/api/restaurants/:id/stats', async (req, res) => {
+  try {
+    const restaurantId = req.params.id;
+    
+    // Get order count for this restaurant
+    const [orderCountResult] = await pool.execute(
+      'SELECT COUNT(*) as total FROM Orders WHERE restaurant_id = ?',
+      [restaurantId]
+    );
+    const totalOrders = orderCountResult[0].total || 0;
+    
+    // Get revenue for this restaurant
+    const [revenueResult] = await pool.execute(
+      'SELECT SUM(total_amount) as revenue FROM Orders WHERE restaurant_id = ?',
+      [restaurantId]
+    );
+    const totalRevenue = revenueResult[0].revenue || 0;
+    
+    // Default rating (in a real app, this would come from a ratings table)
+    const rating = 4.2;
+    
+    res.json({
+      restaurant_id: restaurantId,
+      orders: totalOrders,
+      revenue: totalRevenue,
+      rating: rating
+    });
+  } catch (error) {
+    console.error('Error fetching restaurant stats:', error);
+    res.status(500).json({ 
+      restaurant_id: req.params.id,
+      orders: 0,
+      revenue: 0,
+      rating: 4.0
+    });
+  }
+});
+
+// Get dashboard stats
+app.get('/api/stats', async (req, res) => {
+  try {
+    // Get order count
+    const [orderCountResult] = await pool.execute('SELECT COUNT(*) as total FROM Orders');
+    const totalOrders = orderCountResult[0].total || 0;
+    
+    // Get revenue
+    const [revenueResult] = await pool.execute('SELECT SUM(total_amount) as revenue FROM Orders');
+    const totalRevenue = revenueResult[0].revenue || 0;
+    
+    // Get active students (users who placed orders)
+    const [activeStudentsResult] = await pool.execute('SELECT COUNT(DISTINCT user_id) as active FROM Orders');
+    const activeStudents = activeStudentsResult[0].active || 0;
+    
+    // Average delivery time - mock value for now
+    const deliveryTime = 15;
+    
+    res.json({
+      totalOrders,
+      totalRevenue,
+      activeStudents,
+      deliveryTime
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ 
+      totalOrders: 0,
+      totalRevenue: 0,
+      activeStudents: 0,
+      deliveryTime: 0
+    });
   }
 });
 

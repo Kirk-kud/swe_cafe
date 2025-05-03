@@ -21,13 +21,13 @@ const Navbar = () => {
           {isAuthenticated && (
             <>
               <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
-                <Link to="/AshesiEatsDashboard">Dashboard</Link>
+                <Link to="/admin/dashboard">Dashboard</Link>
               </li>
               <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
                 <Link to="/RestaurantProfiles">Restaurants</Link>
               </li>
               <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
-                <Link to="/track-order">Track Order</Link>
+                <Link to="/orders">Track Order</Link>
               </li>
             </>
           )}

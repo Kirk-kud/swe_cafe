@@ -24,4 +24,4 @@ async function executeQuery(query, params = []) {
   }
 }
 
-module.exports = { executeQuery }; 
+module.exports = { executeQuery, pool }; 
