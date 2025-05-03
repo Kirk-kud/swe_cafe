@@ -116,6 +116,7 @@ const RestaurantProfiles = () => {
                         </Link>
                       ))
                     ) : (
+                      console.log(restaurant.menuItems),
                       <p className="col-span-3">No menu items available</p>
                     )}
                   </div>
