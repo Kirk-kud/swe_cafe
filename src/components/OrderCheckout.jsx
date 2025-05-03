@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useOrder } from '../context/OrderContext';
 import { useAuth } from '../context/AuthContext';
+import OrderConfirmation from './OrderConfirmation';
+import MomoPayment from './MomoPayment';
 
-const OrderSummary = ({ onClose }) => {
+const OrderCheckout = ({ onClose }) => {
   const { currentOrder, updateQuantity, removeItem, submitOrder } = useOrder();
   const { user } = useAuth();
   const [deliveryLocation, setDeliveryLocation] = useState('');
@@ -12,6 +14,7 @@ const OrderSummary = ({ onClose }) => {
   const [error, setError] = useState(null);
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [orderNumber, setOrderNumber] = useState(null);
+  const [showMomoPayment, setShowMomoPayment] = useState(false);
 
   const handleQuantityChange = (itemId, change) => {
     const item = currentOrder.items.find(i => (i.item_id === itemId) || (i.id === itemId));
@@ -20,8 +23,30 @@ const OrderSummary = ({ onClose }) => {
     }
   };
 
+  const processOrder = async () => {
+    try {
+      setIsSubmitting(true);
+      const response = await submitOrder(
+        user?.id || 'guest-user', 
+        deliveryLocation, 
+        deliveryOption,
+        paymentMethod
+      );
+      
+      setOrderSubmitted(true);
+      setOrderNumber(response.order_id || 'TMP' + Math.floor(Math.random() * 10000));
+      setShowMomoPayment(false);
+    } catch (err) {
+      setError('Failed to submit order. Please try again.');
+      console.error('Order submission error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!user) {
       setError('Please log in to place an order');
       return;
@@ -32,45 +57,29 @@ const OrderSummary = ({ onClose }) => {
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
 
-    try {
-      const response = await submitOrder(
-        user.id, 
-        deliveryLocation, 
-        deliveryOption,
-        paymentMethod
-      );
-      
-      setOrderSubmitted(true);
-      setOrderNumber(response.order_id || 'TMP' + Math.floor(Math.random() * 10000));
-    } catch (err) {
-      setError('Failed to submit order. Please try again.');
-      console.error('Order submission error:', err);
-    } finally {
-      setIsSubmitting(false);
+    // Mobile Money payment requires additional steps
+    if (paymentMethod === 'momo') {
+      setShowMomoPayment(true);
+      return;
     }
+
+    // For account or cash payment, process directly
+    processOrder();
   };
 
   if (orderSubmitted) {
+    return <OrderConfirmation orderNumber={orderNumber} onClose={onClose} />;
+  }
+
+  if (showMomoPayment) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <div className="text-center">
-          <svg className="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          <h2 className="text-2xl font-semibold mb-2">Order Confirmed!</h2>
-          <p className="text-gray-600 mb-4">Your order number is <span className="font-semibold">#{orderNumber}</span></p>
-          <p className="text-gray-600 mb-6">You will receive a notification when your order is ready.</p>
-          <button
-            onClick={onClose}
-            className="bg-red-900 text-white px-6 py-2 rounded-lg hover:bg-red-800"
-          >
-            Close
-          </button>
-        </div>
-      </div>
+      <MomoPayment 
+        amount={currentOrder.total} 
+        onCancel={() => setShowMomoPayment(false)} 
+        onComplete={processOrder} 
+      />
     );
   }
 
@@ -250,4 +259,4 @@ const OrderSummary = ({ onClose }) => {
   );
 };
 
-export default OrderSummary; 
+export default OrderCheckout; 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useOrder } from '../context/OrderContext';
-import OrderSummary from './OrderSummary';
+import OrderCheckout from './OrderCheckout';
 
 const RestaurantDetails = () => {
   const { id } = useParams();
@@ -136,7 +136,7 @@ const RestaurantDetails = () => {
       {showOrderSummary && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-md">
-            <OrderSummary onClose={() => setShowOrderSummary(false)} />
+            <OrderCheckout onClose={() => setShowOrderSummary(false)} />
           </div>
         </div>
       )}
