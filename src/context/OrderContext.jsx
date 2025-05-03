@@ -12,17 +12,30 @@ export const OrderProvider = ({ children }) => {
 
   const addItem = useCallback((item, restaurantId) => {
     setCurrentOrder(prev => {
-      const existingItem = prev.items.find(i => i.item_id === item.item_id);
+      // Handle both item.id and item.item_id for flexibility
+      const itemId = item.item_id || item.id;
+      
+      const existingItem = prev.items.find(i => 
+        (i.item_id === itemId) || (i.id === itemId)
+      );
+      
       let newItems;
       
       if (existingItem) {
         newItems = prev.items.map(i => 
-          i.item_id === item.item_id 
+          (i.item_id === itemId || i.id === itemId)
             ? { ...i, quantity: i.quantity + 1 }
             : i
         );
       } else {
-        newItems = [...prev.items, { ...item, quantity: 1 }];
+        // Ensure the item has both id and item_id for consistency
+        const normalizedItem = {
+          ...item,
+          id: item.id || item.item_id,
+          item_id: item.item_id || item.id,
+          quantity: 1
+        };
+        newItems = [...prev.items, normalizedItem];
       }
 
       const total = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -38,7 +51,9 @@ export const OrderProvider = ({ children }) => {
 
   const removeItem = useCallback((itemId) => {
     setCurrentOrder(prev => {
-      const newItems = prev.items.filter(item => item.item_id !== itemId);
+      const newItems = prev.items.filter(item => 
+        (item.item_id !== itemId) && (item.id !== itemId)
+      );
       const total = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       
       return {
@@ -57,7 +72,7 @@ export const OrderProvider = ({ children }) => {
 
     setCurrentOrder(prev => {
       const newItems = prev.items.map(item => 
-        item.item_id === itemId 
+        (item.item_id === itemId || item.id === itemId)
           ? { ...item, quantity }
           : item
       );
@@ -86,7 +101,7 @@ export const OrderProvider = ({ children }) => {
         student_id: userId,
         restaurant_id: currentOrder.restaurantId,
         items: currentOrder.items.map(item => ({
-          item_id: item.item_id,
+          item_id: item.item_id || item.id,
           quantity: item.quantity,
           price: item.price
         })),

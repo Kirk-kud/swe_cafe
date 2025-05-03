@@ -11,7 +11,7 @@ const OrderSummary = ({ onClose }) => {
   const [error, setError] = useState(null);
 
   const handleQuantityChange = (itemId, change) => {
-    const item = currentOrder.items.find(i => i.item_id === itemId);
+    const item = currentOrder.items.find(i => (i.item_id === itemId) || (i.id === itemId));
     if (item) {
       updateQuantity(itemId, item.quantity + change);
     }
@@ -61,35 +61,39 @@ const OrderSummary = ({ onClose }) => {
       </div>
 
       <div className="space-y-4 mb-6">
-        {currentOrder.items.map(item => (
-          <div key={item.item_id} className="flex justify-between items-center">
-            <div>
-              <h3 className="font-medium">{item.name}</h3>
-              <p className="text-sm text-gray-600">₵{item.price.toFixed(2)}</p>
+        {currentOrder.items.map(item => {
+          const itemId = item.item_id || item.id;
+          const itemName = item.item_name || item.name;
+          return (
+            <div key={itemId} className="flex justify-between items-center">
+              <div>
+                <h3 className="font-medium">{itemName}</h3>
+                <p className="text-sm text-gray-600">GHC {parseFloat(item.price).toFixed(2)}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleQuantityChange(itemId, -1)}
+                  className="w-8 h-8 flex items-center justify-center border rounded-full hover:bg-gray-100"
+                >
+                  -
+                </button>
+                <span>{item.quantity}</span>
+                <button
+                  onClick={() => handleQuantityChange(itemId, 1)}
+                  className="w-8 h-8 flex items-center justify-center border rounded-full hover:bg-gray-100"
+                >
+                  +
+                </button>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => handleQuantityChange(item.item_id, -1)}
-                className="w-8 h-8 flex items-center justify-center border rounded-full hover:bg-gray-100"
-              >
-                -
-              </button>
-              <span>{item.quantity}</span>
-              <button
-                onClick={() => handleQuantityChange(item.item_id, 1)}
-                className="w-8 h-8 flex items-center justify-center border rounded-full hover:bg-gray-100"
-              >
-                +
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="border-t pt-4 mb-6">
         <div className="flex justify-between font-semibold">
           <span>Total</span>
-          <span>₵{currentOrder.total.toFixed(2)}</span>
+          <span>GHC {currentOrder.total.toFixed(2)}</span>
         </div>
       </div>
 

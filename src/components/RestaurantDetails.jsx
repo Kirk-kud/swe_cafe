@@ -16,7 +16,8 @@ const RestaurantDetails = () => {
     const fetchRestaurant = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080/api/restaurants/${id}`);
+        const response = await axios.get(`http://localhost:3000/api/restaurants/${id}`);
+        console.log('Restaurant details response:', response.data);
         setRestaurant(response.data);
         setError(null);
       } catch (err) {
@@ -27,11 +28,21 @@ const RestaurantDetails = () => {
       }
     };
 
-    fetchRestaurant();
+    if (id) {
+      fetchRestaurant();
+    }
   }, [id]);
 
   const handleAddToOrder = (item) => {
-    addItem(item, id);
+    const orderItem = {
+      id: item.item_id,
+      name: item.item_name,
+      price: parseFloat(item.price),
+      description: item.description,
+      image_url: item.image_url,
+      restaurant_id: id
+    };
+    addItem(orderItem, id);
   };
 
   if (loading) {
@@ -51,7 +62,7 @@ const RestaurantDetails = () => {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <img 
-            src={restaurant.image_url} 
+            src={restaurant.image_url || "/api/placeholder/100/100"} 
             alt={restaurant.name}
             className="w-full h-64 object-cover"
           />
@@ -61,12 +72,12 @@ const RestaurantDetails = () => {
               <span className="text-yellow-500">★</span>
               <span className="ml-1">{restaurant.rating}</span>
               <span className="mx-2">•</span>
-              <span>{restaurant.location}</span>
+              <span>{restaurant.location || 'Ashesi Campus'}</span>
             </div>
             <p className="text-gray-600 mb-4">{restaurant.description}</p>
             <div className="mb-4">
               <h2 className="text-xl font-semibold mb-2">Opening Hours</h2>
-              <p>{restaurant.opening_hours}</p>
+              <p>{restaurant.opening_hours || 'Monday - Sunday: 8:00 AM - 8:00 PM'}</p>
             </div>
             
             <div className="mt-6">
@@ -86,21 +97,36 @@ const RestaurantDetails = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {restaurant.menu?.map((item) => (
-                  <div key={item.item_id} className="border rounded-lg p-4">
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <p className="text-gray-600">{item.description}</p>
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-green-600 font-semibold">₵{item.price}</p>
-                      <button
-                        onClick={() => handleAddToOrder(item)}
-                        className="bg-red-900 text-white px-3 py-1 rounded hover:bg-red-800"
-                      >
-                        Add to Order
-                      </button>
+                {restaurant.menu && restaurant.menu.length > 0 ? (
+                  restaurant.menu.map((item) => (
+                    <div key={item.item_id} className="border rounded-lg p-4">
+                      <div className="flex mb-2">
+                        <div className="w-16 h-16 flex-shrink-0 mr-3">
+                          <img 
+                            src={item.image_url || "/api/placeholder/100/100"} 
+                            alt={item.item_name}
+                            className="w-full h-full object-cover rounded"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{item.item_name}</h3>
+                          <p className="text-gray-600 text-sm">{item.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <p className="text-green-600 font-semibold">GHC {item.price}</p>
+                        <button
+                          onClick={() => handleAddToOrder(item)}
+                          className="bg-red-900 text-white px-3 py-1 rounded hover:bg-red-800"
+                        >
+                          Add to Order
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="col-span-2 text-center">No menu items available</p>
+                )}
               </div>
             </div>
           </div>
@@ -108,7 +134,7 @@ const RestaurantDetails = () => {
       </div>
 
       {showOrderSummary && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="w-full max-w-md">
             <OrderSummary onClose={() => setShowOrderSummary(false)} />
           </div>

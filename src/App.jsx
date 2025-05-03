@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar.jsx";
 import Heading from "./components/heading.jsx";
 import Footer from "./components/Footer.jsx";
 import RestaurantProfiles from "./pages/RestaurantProfiles.jsx";
+import RestaurantDetailsPage from "./pages/RestaurantDetails.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import AshesiEatsDashboard from "./pages/admin/AshesiEatsDashboard.jsx";
@@ -41,6 +42,7 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/RestaurantProfiles" element={<RestaurantProfiles />} />
+                  <Route path="/restaurant/:id" element={<RestaurantDetailsPage />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
                   <Route 

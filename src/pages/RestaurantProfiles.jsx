@@ -92,19 +92,29 @@ const RestaurantProfiles = () => {
                       className="w-20 h-20 object-cover rounded-lg"
                     />
                     <div>
-                      <h2 className="text-xl font-semibold">{restaurant.name}</h2>
+                      <h2 className="text-xl font-semibold">
+                        <Link to={`/restaurant/${restaurant.id}`} className="text-blue-600 hover:underline">
+                          {restaurant.name}
+                        </Link>
+                      </h2>
                       <p className="text-gray-600">{restaurant.description}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-yellow-500">★ {restaurant.rating}</span>
                         <span className="text-gray-500">•</span>
                         <span className="text-gray-600">{restaurant.location}</span>
                       </div>
+                      <Link 
+                        to={`/restaurant/${restaurant.id}`}
+                        className="mt-2 inline-block bg-red-900 text-white px-4 py-2 rounded-lg hover:bg-red-800"
+                      >
+                        View Menu
+                      </Link>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Array.isArray(restaurant.menu) && restaurant.menu.length > 0 ? (
-                      restaurant.menu.map((item) => (
+                      restaurant.menu.slice(0, 3).map((item) => (
                         <Link to={`/restaurant/${restaurant.id}`} key={item.item_id || `item-${Math.random()}`}>
                           <FoodCard
                             title={item.item_name}
