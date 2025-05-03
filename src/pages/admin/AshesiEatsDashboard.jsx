@@ -306,8 +306,8 @@ const RecentOrdersTable = ({ orders, onRefresh }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentOrders.map((order) => (
-                  <TableRow key={order.id} className={getRestaurantBorder(order.restaurant)}>
+                {currentOrders.map((order, index) => (
+                  <TableRow key={`order-${order.id || index}`} className={getRestaurantBorder(order.restaurant)}>
                     <TableCell className="p-3">{order.id}</TableCell>
                     <TableCell className="p-3">{order.student}</TableCell>
                     <TableCell className="p-3">{order.restaurant}</TableCell>
@@ -346,6 +346,7 @@ const RecentOrdersTable = ({ orders, onRefresh }) => {
         <div className="flex justify-end mt-4">
           <div className="flex space-x-2">
             <Button
+              key="prev-button"
               variant="outline"
               size="icon"
               onClick={() => paginate(Math.max(1, currentPage - 1))}
@@ -355,7 +356,7 @@ const RecentOrdersTable = ({ orders, onRefresh }) => {
             </Button>
             {pageNumbers.map(number => (
               <Button
-                key={number}
+                key={`page-${number}`}
                 variant={number === currentPage ? "default" : "outline"}
                 onClick={() => paginate(number)}
               >
@@ -363,6 +364,7 @@ const RecentOrdersTable = ({ orders, onRefresh }) => {
               </Button>
             ))}
             <Button
+              key="next-button"
               variant="outline"
               size="icon"
               onClick={() => paginate(Math.min(pageNumbers.length, currentPage + 1))}
@@ -379,6 +381,9 @@ const RecentOrdersTable = ({ orders, onRefresh }) => {
 
 // Stats Cards Component
 const StatsCards = ({ totalOrders, totalRevenue, activeStudents, deliveryTime }) => {
+  // Ensure totalRevenue is a number
+  const revenue = typeof totalRevenue === 'number' ? totalRevenue : parseFloat(totalRevenue || 0);
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card>
@@ -400,7 +405,7 @@ const StatsCards = ({ totalOrders, totalRevenue, activeStudents, deliveryTime })
           <DollarSign size={24} className="text-green-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">₵{totalRevenue.toFixed(2)}</div>
+          <div className="text-2xl font-bold">₵{revenue.toFixed(2)}</div>
           <p className="text-xs text-gray-500">
             <span className="text-green-500">▲ 8.2%</span> vs last week
           </p>
@@ -505,17 +510,23 @@ const RestaurantPerformanceTable = ({ restaurants }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {restaurants.map((restaurant) => (
-                <TableRow key={restaurant.id} className={getRestaurantBorder(restaurant)}>
-                  <TableCell className="p-3">{restaurant.name || 'Unnamed'}</TableCell>
-                  <TableCell className="p-3">{restaurant.orders || 0}</TableCell>
-                  <TableCell className="p-3">₵{(restaurant.revenue || 0).toFixed(2)}</TableCell>
-                  <TableCell className="p-3">{restaurant.rating || 0}/5</TableCell>
-                  <TableCell className="p-3">
-                    <Button variant="outline" size="sm">View</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {restaurants.map((restaurant) => {
+                // Ensure revenue is a number
+                const revenue = typeof restaurant.revenue === 'number' ? 
+                  restaurant.revenue : parseFloat(restaurant.revenue || 0);
+                
+                return (
+                  <TableRow key={restaurant.id} className={getRestaurantBorder(restaurant)}>
+                    <TableCell className="p-3">{restaurant.name || 'Unnamed'}</TableCell>
+                    <TableCell className="p-3">{restaurant.orders || 0}</TableCell>
+                    <TableCell className="p-3">₵{revenue.toFixed(2)}</TableCell>
+                    <TableCell className="p-3">{restaurant.rating || 0}/5</TableCell>
+                    <TableCell className="p-3">
+                      <Button variant="outline" size="sm">View</Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}

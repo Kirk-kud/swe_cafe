@@ -237,7 +237,7 @@ app.get('/api/restaurants/:id/stats', async (req, res) => {
       'SELECT SUM(total_amount) as revenue FROM Orders WHERE restaurant_id = ?',
       [restaurantId]
     );
-    const totalRevenue = revenueResult[0].revenue || 0;
+    const totalRevenue = parseFloat(revenueResult[0].revenue || 0);
     
     // Default rating (in a real app, this would come from a ratings table)
     const rating = 4.2;
@@ -268,7 +268,7 @@ app.get('/api/stats', async (req, res) => {
     
     // Get revenue
     const [revenueResult] = await pool.execute('SELECT SUM(total_amount) as revenue FROM Orders');
-    const totalRevenue = revenueResult[0].revenue || 0;
+    const totalRevenue = parseFloat(revenueResult[0].revenue || 0);
     
     // Get active students (users who placed orders)
     const [activeStudentsResult] = await pool.execute('SELECT COUNT(DISTINCT user_id) as active FROM Orders');
@@ -320,6 +320,385 @@ app.get('/api/auth/session', authenticateToken, async (req, res) => {
 // Logout endpoint
 app.post('/api/auth/logout', (req, res) => {
   res.json({ message: 'Logged out successfully' });
+});
+
+// Get order updates (for tracking)
+app.get('/api/orders/:orderId/updates', async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    
+    // Get order status and timestamp
+    const [orderResult] = await pool.execute(`
+      SELECT status, order_time, updated_at
+      FROM Orders
+      WHERE order_id = ?
+    `, [orderId]);
+    
+    if (orderResult.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    const order = orderResult[0];
+    
+    // Create timeline based on current status
+    const timeline = [
+      { status: 'pending', timestamp: new Date(order.order_time).toISOString(), message: 'Order placed' }
+    ];
+    
+    // Add more timeline events based on status
+    if (order.status !== 'pending') {
+      // Add confirmed status
+      timeline.push({
+        status: 'confirmed',
+        timestamp: new Date(new Date(order.order_time).getTime() + 5*60000).toISOString(),
+        message: 'Order confirmed by restaurant'
+      });
+    }
+    
+    if (['preparing', 'ready', 'out_for_delivery', 'delivered'].includes(order.status)) {
+      timeline.push({
+        status: 'preparing',
+        timestamp: new Date(new Date(order.order_time).getTime() + 10*60000).toISOString(),
+        message: 'Restaurant is preparing your order'
+      });
+    }
+    
+    if (['ready', 'out_for_delivery', 'delivered'].includes(order.status)) {
+      timeline.push({
+        status: 'ready',
+        timestamp: new Date(new Date(order.order_time).getTime() + 20*60000).toISOString(),
+        message: 'Your order is ready for pickup'
+      });
+    }
+    
+    if (['out_for_delivery', 'delivered'].includes(order.status)) {
+      timeline.push({
+        status: 'out_for_delivery',
+        timestamp: new Date(new Date(order.order_time).getTime() + 25*60000).toISOString(),
+        message: 'Your order is on the way'
+      });
+    }
+    
+    if (order.status === 'delivered') {
+      timeline.push({
+        status: 'delivered',
+        timestamp: new Date(new Date(order.order_time).getTime() + 35*60000).toISOString(),
+        message: 'Order delivered successfully'
+      });
+    }
+    
+    // Return updates
+    res.json({
+      status: order.status,
+      updated_at: order.updated_at || order.order_time,
+      timeline
+    });
+  } catch (error) {
+    console.error('Error fetching order updates:', error);
+    res.status(500).json({ error: 'Failed to fetch order updates' });
+  }
+});
+
+// Cancel an order
+app.post('/api/orders/:orderId/cancel', async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    
+    // Check if order exists
+    const [orderResult] = await pool.execute('SELECT * FROM Orders WHERE order_id = ?', [orderId]);
+    
+    if (orderResult.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    // Check if order can be cancelled (only pending or confirmed orders)
+    const order = orderResult[0];
+    if (!['pending', 'confirmed'].includes(order.status)) {
+      return res.status(400).json({ 
+        error: 'Cannot cancel order', 
+        message: 'Orders can only be cancelled when in pending or confirmed status' 
+      });
+    }
+    
+    // Update order status to cancelled
+    await pool.execute('UPDATE Orders SET status = ?, updated_at = ? WHERE order_id = ?', 
+      ['cancelled', new Date().toISOString(), orderId]
+    );
+    
+    res.json({ 
+      success: true, 
+      message: 'Order cancelled successfully',
+      order_id: orderId
+    });
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+    res.status(500).json({ error: 'Failed to cancel order' });
+  }
+});
+
+// Get restaurant menu
+app.get('/api/restaurants/:restaurantId/menu', async (req, res) => {
+  try {
+    const restaurantId = req.params.restaurantId;
+    
+    // Check if restaurant exists
+    const [restaurantResult] = await pool.execute('SELECT * FROM Restaurants WHERE id = ?', [restaurantId]);
+    
+    if (restaurantResult.length === 0) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+    
+    // Get menu items for this restaurant
+    const [menuItems] = await pool.execute(
+      'SELECT * FROM MenuItems WHERE restaurant_id = ?',
+      [restaurantId]
+    );
+    
+    res.json(menuItems);
+  } catch (error) {
+    console.error('Error fetching restaurant menu:', error);
+    res.status(500).json({ error: 'Failed to fetch menu' });
+  }
+});
+
+// Add menu item to restaurant
+app.post('/api/restaurants/:restaurantId/menu', async (req, res) => {
+  try {
+    const restaurantId = req.params.restaurantId;
+    const { name, price, category, available, image, description } = req.body;
+    
+    // Validate required fields
+    if (!name || price === undefined || !category) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Insert menu item
+    const [result] = await pool.execute(
+      'INSERT INTO MenuItems (restaurant_id, item_name, price, category, available, image_url, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [restaurantId, name, price, category, available ? 1 : 0, image || null, description || null]
+    );
+    
+    // Get the inserted item
+    const [items] = await pool.execute('SELECT * FROM MenuItems WHERE item_id = ?', [result.insertId]);
+    
+    res.status(201).json(items[0]);
+  } catch (error) {
+    console.error('Error adding menu item:', error);
+    res.status(500).json({ error: 'Failed to add menu item' });
+  }
+});
+
+// Update menu item
+app.put('/api/menu-items/:menuItemId', async (req, res) => {
+  try {
+    const menuItemId = req.params.menuItemId;
+    const { name, price, category, available, image, description } = req.body;
+    
+    // Check if menu item exists
+    const [itemResult] = await pool.execute('SELECT * FROM MenuItems WHERE item_id = ?', [menuItemId]);
+    
+    if (itemResult.length === 0) {
+      return res.status(404).json({ error: 'Menu item not found' });
+    }
+    
+    // Update menu item
+    await pool.execute(
+      'UPDATE MenuItems SET item_name = ?, price = ?, category = ?, available = ?, image_url = ?, description = ? WHERE item_id = ?',
+      [
+        name || itemResult[0].item_name,
+        price !== undefined ? price : itemResult[0].price,
+        category || itemResult[0].category,
+        available !== undefined ? (available ? 1 : 0) : itemResult[0].available,
+        image || itemResult[0].image_url,
+        description !== undefined ? description : itemResult[0].description,
+        menuItemId
+      ]
+    );
+    
+    // Get the updated item
+    const [updatedItem] = await pool.execute('SELECT * FROM MenuItems WHERE item_id = ?', [menuItemId]);
+    
+    res.json(updatedItem[0]);
+  } catch (error) {
+    console.error('Error updating menu item:', error);
+    res.status(500).json({ error: 'Failed to update menu item' });
+  }
+});
+
+// Delete menu item
+app.delete('/api/menu-items/:menuItemId', async (req, res) => {
+  try {
+    const menuItemId = req.params.menuItemId;
+    
+    // Check if menu item exists
+    const [itemResult] = await pool.execute('SELECT * FROM MenuItems WHERE item_id = ?', [menuItemId]);
+    
+    if (itemResult.length === 0) {
+      return res.status(404).json({ error: 'Menu item not found' });
+    }
+    
+    // Delete menu item
+    await pool.execute('DELETE FROM MenuItems WHERE item_id = ?', [menuItemId]);
+    
+    res.json({ success: true, message: 'Menu item deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting menu item:', error);
+    res.status(500).json({ error: 'Failed to delete menu item' });
+  }
+});
+
+// Get restaurant orders
+app.get('/api/restaurants/:restaurantId/orders', async (req, res) => {
+  try {
+    const restaurantId = req.params.restaurantId;
+    
+    // Check if restaurant exists
+    const [restaurantResult] = await pool.execute('SELECT * FROM Restaurants WHERE id = ?', [restaurantId]);
+    
+    if (restaurantResult.length === 0) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+    
+    // Get orders for this restaurant
+    const [orders] = await pool.execute(`
+      SELECT o.*, u.first_name, u.last_name
+      FROM Orders o
+      JOIN Users u ON o.user_id = u.user_id
+      WHERE o.restaurant_id = ?
+      ORDER BY o.order_time DESC
+    `, [restaurantId]);
+    
+    // Format orders for frontend
+    const formattedOrders = orders.map(order => ({
+      id: order.order_id,
+      customer: `${order.first_name} ${order.last_name}`,
+      items: [], // In a real app, you would fetch order items here
+      status: order.status,
+      time: new Date(order.order_time).toLocaleTimeString(),
+      amount: `₵${order.total_amount}`
+    }));
+    
+    res.json(formattedOrders);
+  } catch (error) {
+    console.error('Error fetching restaurant orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
+// Update order status
+app.put('/api/orders/:orderId/status', async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const { status } = req.body;
+    
+    // Validate status
+    const validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+    
+    // Check if order exists
+    const [orderResult] = await pool.execute('SELECT * FROM Orders WHERE order_id = ?', [orderId]);
+    
+    if (orderResult.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    // Update order status
+    await pool.execute(
+      'UPDATE Orders SET status = ?, updated_at = ? WHERE order_id = ?',
+      [status, new Date().toISOString(), orderId]
+    );
+    
+    // Get updated order
+    const [updatedOrder] = await pool.execute(`
+      SELECT o.*, u.first_name, u.last_name
+      FROM Orders o
+      JOIN Users u ON o.user_id = u.user_id
+      WHERE o.order_id = ?
+    `, [orderId]);
+    
+    res.json({
+      id: updatedOrder[0].order_id,
+      status: updatedOrder[0].status,
+      customer: `${updatedOrder[0].first_name} ${updatedOrder[0].last_name}`,
+      updated_at: updatedOrder[0].updated_at || updatedOrder[0].order_time
+    });
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
+
+// Get orders for a specific user
+app.get('/api/users/:userId/orders', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    // Verify user exists
+    const [userResult] = await pool.execute('SELECT * FROM Users WHERE user_id = ?', [userId]);
+    
+    if (userResult.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Get all orders for this user
+    const [ordersResult] = await pool.execute(`
+      SELECT o.*, r.name as restaurant_name
+      FROM Orders o
+      LEFT JOIN Restaurants r ON o.restaurant_id = r.id
+      WHERE o.user_id = ?
+      ORDER BY o.order_time DESC
+    `, [userId]);
+    
+    // Format orders for frontend
+    const orders = await Promise.all(ordersResult.map(async (order) => {
+      // Get order items
+      const [orderItemsResult] = await pool.execute(`
+        SELECT oi.*, mi.item_name, mi.price
+        FROM OrderItems oi
+        JOIN MenuItems mi ON oi.item_id = mi.item_id
+        WHERE oi.order_id = ?
+      `, [order.order_id]);
+      
+      // Format date and time
+      const orderDate = new Date(order.order_time);
+      const formattedDate = orderDate.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      const formattedTime = orderDate.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      return {
+        id: order.order_id,
+        restaurant_id: order.restaurant_id,
+        restaurant_name: order.restaurant_name || 'Unknown Restaurant',
+        status: order.status || 'pending',
+        date: formattedDate,
+        time: formattedTime,
+        items: orderItemsResult.map(item => ({
+          id: item.order_item_id,
+          name: item.item_name,
+          price: parseFloat(item.price || 0),
+          quantity: item.quantity || 1
+        })),
+        total_amount: parseFloat(order.total_amount || 0)
+      };
+    }));
+    
+    // Return empty array if no orders (not 404)
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch user orders',
+      details: error.message 
+    });
+  }
 });
 
 // Error handling middleware
