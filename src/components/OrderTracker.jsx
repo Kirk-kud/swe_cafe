@@ -1,45 +1,29 @@
 import React from 'react';
-import { useOrder } from '../contexts/OrderContext';
 
 const statusSteps = [
   { status: 'pending', label: 'Order Placed', icon: '📝' },
-  { status: 'paid', label: 'Payment Confirmed', icon: '💳' },
+  { status: 'confirmed', label: 'Order Confirmed', icon: '💼' },
   { status: 'preparing', label: 'Preparing', icon: '👨‍🍳' },
   { status: 'ready', label: 'Ready for Pickup', icon: '✅' },
-  { status: 'delivered', label: 'Delivered', icon: '🎉' }
+  { status: 'out_for_delivery', label: 'On the Way', icon: '🚚' },
+  { status: 'delivered', label: 'Delivered', icon: '🎉' },
+  { status: 'cancelled', label: 'Cancelled', icon: '❌' }
 ];
 
-const OrderTracker = ({ orderId }) => {
-  const { currentOrder } = useOrder();
-  
+const OrderTracker = ({ order }) => {
   const getCurrentStepIndex = () => {
-    return statusSteps.findIndex(step => step.status === currentOrder?.status) || 0;
+    if (!order || !order.status) return 0;
+    return statusSteps.findIndex(step => step.status === order.status) || 0;
   };
 
-  if (!currentOrder) {
-    return <div>No order found</div>;
+  if (!order) {
+    return <div className="text-center text-gray-500 py-4">No order information available</div>;
   }
 
   const currentStep = getCurrentStepIndex();
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Order Status</h2>
-      
-      {/* Order Info */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <p className="text-sm text-gray-600">Order ID</p>
-            <p className="font-semibold">{currentOrder.id}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Total Amount</p>
-            <p className="font-semibold">GHC {currentOrder.total}</p>
-          </div>
-        </div>
-      </div>
-
+    <div className="w-full mx-auto">
       {/* Status Timeline */}
       <div className="relative">
         <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-200"></div>
@@ -89,15 +73,6 @@ const OrderTracker = ({ orderId }) => {
           ))}
         </div>
       </div>
-
-      {/* Estimated Time */}
-      {currentOrder.status === 'preparing' && (
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-          <p className="text-center text-blue-800">
-            Estimated preparation time: 15-20 minutes
-          </p>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 // Define the base API URL - same as used in other services
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -15,14 +13,19 @@ const OrderService = {
   async getUserOrders(userId) {
     try {
       console.log(`Fetching orders for user ${userId}`);
-      const response = await axios.get(`${API_BASE_URL}/api/users/${userId}/orders`, {
-        withCredentials: true
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}/orders`, {
+        credentials: 'include'
       });
-      console.log('Orders response:', response.data);
-      return response.data;
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Orders response:', data);
+      return data;
     } catch (error) {
       console.error('Error fetching user orders:', error);
-      // No longer returning fallback demo data
       throw error;
     }
   },
@@ -34,37 +37,18 @@ const OrderService = {
    */
   async getOrderById(orderId) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/orders/${orderId}`, {
-        withCredentials: true
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+        credentials: 'include'
       });
-      return response.data;
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      return await response.json();
     } catch (error) {
       console.error('Error fetching order details:', error);
-      // For development - fallback demo data
-      return {
-        id: orderId,
-        date: '2023-07-17',
-        time: '7:15 PM',
-        restaurant_name: 'Akornor Restaurant',
-        restaurant_id: 1,
-        total_amount: 50.00,
-        status: 'preparing',
-        delivery_option: 'delivery',
-        delivery_location: 'New Hosanna Hall, Room 204',
-        payment_method: 'momo',
-        payment_status: 'paid',
-        estimated_delivery_time: '30-45 minutes',
-        items: [
-          { name: 'Tilapia with Banku', quantity: 1, price: 35.00 },
-          { name: 'Kelewele', quantity: 1, price: 10.00 },
-          { name: 'Soft Drink', quantity: 1, price: 5.00 }
-        ],
-        timeline: [
-          { status: 'pending', timestamp: '2023-07-17 7:15 PM', message: 'Order placed' },
-          { status: 'paid', timestamp: '2023-07-17 7:16 PM', message: 'Payment confirmed' },
-          { status: 'preparing', timestamp: '2023-07-17 7:20 PM', message: 'Restaurant is preparing your order' }
-        ]
-      };
+      throw error;
     }
   },
 
@@ -75,22 +59,18 @@ const OrderService = {
    */
   async getOrderUpdates(orderId) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/orders/${orderId}/updates`, {
-        withCredentials: true
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/updates`, {
+        credentials: 'include'
       });
-      return response.data;
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      return await response.json();
     } catch (error) {
       console.error('Error fetching order updates:', error);
-      // For development - fallback data for order updates
-      return {
-        status: 'preparing',
-        updated_at: new Date().toISOString(),
-        timeline: [
-          { status: 'pending', timestamp: '2023-07-17 7:15 PM', message: 'Order placed' },
-          { status: 'paid', timestamp: '2023-07-17 7:16 PM', message: 'Payment confirmed' },
-          { status: 'preparing', timestamp: '2023-07-17 7:20 PM', message: 'Restaurant is preparing your order' }
-        ]
-      };
+      throw error;
     }
   },
 
@@ -101,14 +81,22 @@ const OrderService = {
    */
   async cancelOrder(orderId) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {}, {
-        withCredentials: true
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
-      return response.data;
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      return await response.json();
     } catch (error) {
       console.error('Error cancelling order:', error);
-      // For development - simulate successful cancellation
-      return { success: true, message: 'Order cancelled successfully' };
+      throw error;
     }
   }
 };

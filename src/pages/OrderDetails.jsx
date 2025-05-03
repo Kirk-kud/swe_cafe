@@ -190,7 +190,7 @@ const OrderDetails = () => {
               <div className="border-t pt-3 mt-3">
                 <div className="flex justify-between font-bold text-lg">
                   <p>Total</p>
-                  <p>₵{order.total_amount.toFixed(2)}</p>
+                  <p>₵{(typeof order.total_amount === 'number' ? order.total_amount : parseFloat(order.total_amount || 0)).toFixed(2)}</p>
                 </div>
               </div>
             </div>
@@ -204,7 +204,7 @@ const OrderDetails = () => {
               <h2 className="font-bold text-lg">Order Status</h2>
             </div>
             <div className="p-4">
-              <OrderTracker orderId={order.id} />
+              <OrderTracker order={order} />
               
               {order.status === 'preparing' && (
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
@@ -218,20 +218,26 @@ const OrderDetails = () => {
               <div className="mt-8">
                 <h3 className="font-semibold mb-4">Order Updates</h3>
                 <div className="space-y-4">
-                  {order.timeline.map((update, idx) => (
-                    <div key={idx} className="flex">
-                      <div className="mr-4 relative">
-                        <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                        {idx < order.timeline.length - 1 && (
-                          <div className="h-full w-0.5 bg-blue-200 absolute top-3 left-1.5 -ml-px"></div>
-                        )}
+                  {order.timeline && order.timeline.length > 0 ? (
+                    order.timeline.map((update, idx) => (
+                      <div key={idx} className="flex">
+                        <div className="mr-4 relative">
+                          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                          {idx < order.timeline.length - 1 && (
+                            <div className="h-full w-0.5 bg-blue-200 absolute top-3 left-1.5 -ml-px"></div>
+                          )}
+                        </div>
+                        <div className="flex-1 pb-4">
+                          <p className="text-sm font-semibold">{update.message}</p>
+                          <p className="text-xs text-gray-500">{update.timestamp}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 pb-4">
-                        <p className="text-sm font-semibold">{update.message}</p>
-                        <p className="text-xs text-gray-500">{update.timestamp}</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500">
+                      <p>No order updates available</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
               

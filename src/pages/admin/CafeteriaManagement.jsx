@@ -47,14 +47,8 @@ const CafeteriaManagement = () => {
     } catch (error) {
       console.error('Error fetching menu items:', error);
       setError('Failed to load menu items');
-      // Fallback to demo data if API fails
-      setMenuItems([
-        { id: 1, name: 'Jollof Rice with Chicken', price: '25.00', category: 'Main Course', available: true, image: '/src/assets/jollof.jpg' },
-        { id: 2, name: 'Waakye Special', price: '30.00', category: 'Main Course', available: true, image: '/src/assets/waakye.jpg' },
-        { id: 3, name: 'Kelewele', price: '10.00', category: 'Appetizer', available: true, image: '/src/assets/kelewele.jpg' },
-        { id: 4, name: 'Tilapia with Banku', price: '35.00', category: 'Main Course', available: false, image: '/src/assets/tilapia.jpg' },
-        { id: 5, name: 'Fresh Fruit Juice', price: '8.00', category: 'Beverage', available: true, image: '/src/assets/juice.jpg' },
-      ]);
+      // Don't use placeholder data
+      setMenuItems([]);
     }
   };
 

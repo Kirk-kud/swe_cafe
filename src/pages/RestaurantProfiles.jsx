@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import FoodCard from "../components/Food_Card";
-import axios from "axios";
 import { Link } from "react-router-dom";
 
 const RestaurantProfiles = () => {
@@ -14,22 +13,31 @@ const RestaurantProfiles = () => {
         console.log('Fetching restaurants...');
         // Fetch all three restaurants using their ID-specific endpoints
         const [restaurant1, restaurant2, restaurant3] = await Promise.all([
-          axios.get("http://localhost:3000/api/restaurants/1"),
-          axios.get("http://localhost:3000/api/restaurants/2"),
-          axios.get("http://localhost:3000/api/restaurants/3")
+          fetch("http://localhost:3000/api/restaurants/1").then(res => {
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            return res.json();
+          }),
+          fetch("http://localhost:3000/api/restaurants/2").then(res => {
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            return res.json();
+          }),
+          fetch("http://localhost:3000/api/restaurants/3").then(res => {
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            return res.json();
+          })
         ]);
         
         console.log('Restaurants responses:', {
-          restaurant1: restaurant1.data,
-          restaurant2: restaurant2.data,
-          restaurant3: restaurant3.data
+          restaurant1,
+          restaurant2,
+          restaurant3
         });
         
         // Combine the responses into an array of restaurant objects
         const allRestaurants = [
-          restaurant1.data,
-          restaurant2.data,
-          restaurant3.data
+          restaurant1,
+          restaurant2,
+          restaurant3
         ];
         
         setRestaurants(allRestaurants);
