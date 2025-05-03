@@ -12,28 +12,27 @@ const RestaurantProfiles = () => {
     const fetchRestaurants = async () => {
       try {
         console.log('Fetching restaurants...');
-        const response = await axios.get("http://localhost:3000/api/restaurants/1");
-        console.log('Restaurants response:', response.data);
+        // Fetch all three restaurants using their ID-specific endpoints
+        const [restaurant1, restaurant2, restaurant3] = await Promise.all([
+          axios.get("http://localhost:3000/api/restaurants/1"),
+          axios.get("http://localhost:3000/api/restaurants/2"),
+          axios.get("http://localhost:3000/api/restaurants/3")
+        ]);
         
-        // Make sure we're setting an array to the state
-        if (Array.isArray(response.data)) {
-          setRestaurants(response.data);
-        } else if (response.data && typeof response.data === 'object') {
-          // Check if the response contains a data/restaurants/items property that is an array
-          if (response.data.restaurants && Array.isArray(response.data.restaurants)) {
-            setRestaurants(response.data.restaurants);
-          } else if (response.data.data && Array.isArray(response.data.data)) {
-            setRestaurants(response.data.data);
-          } else if (response.data.items && Array.isArray(response.data.items)) {
-            setRestaurants(response.data.items);
-          } else {
-            // If it's a single restaurant object, wrap it in an array
-            setRestaurants([response.data]);
-          }
-        } else {
-          throw new Error("Unexpected API response format");
-        }
+        console.log('Restaurants responses:', {
+          restaurant1: restaurant1.data,
+          restaurant2: restaurant2.data,
+          restaurant3: restaurant3.data
+        });
         
+        // Combine the responses into an array of restaurant objects
+        const allRestaurants = [
+          restaurant1.data,
+          restaurant2.data,
+          restaurant3.data
+        ];
+        
+        setRestaurants(allRestaurants);
         setLoading(false);
       } catch (err) {
         console.error('Error details:', err);
@@ -104,9 +103,9 @@ const RestaurantProfiles = () => {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Array.isArray(restaurant.menuItems) && restaurant.menuItems.length > 0 ? (
-                      restaurant.menuItems.map((item) => (
-                        <Link to={`/restaurant/${restaurant.id}`} key={item.id || `item-${Math.random()}`}>
+                    {Array.isArray(restaurant.menu) && restaurant.menu.length > 0 ? (
+                      restaurant.menu.map((item) => (
+                        <Link to={`/restaurant/${restaurant.id}`} key={item.item_id || `item-${Math.random()}`}>
                           <FoodCard
                             title={item.item_name}
                             text={item.description}
@@ -116,7 +115,6 @@ const RestaurantProfiles = () => {
                         </Link>
                       ))
                     ) : (
-                      console.log(restaurant.menuItems),
                       <p className="col-span-3">No menu items available</p>
                     )}
                   </div>
