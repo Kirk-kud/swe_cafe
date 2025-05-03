@@ -12,7 +12,7 @@ router.get('/test', (req, res) => {
 });
 
 // Get all restaurants with their menu items
-router.get('/', async (req, res) => {
+router.get('/all', async (req, res) => {
   console.log('GET /api/restaurants endpoint hit');
   try {
     // Get all restaurants

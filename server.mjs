@@ -16,7 +16,7 @@ app.use(express.json());
 
 // CORS options
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: "http://localhost:5173",
   credentials: true
 };
 
@@ -181,7 +181,7 @@ app.get('/api/restaurants/:id', async (req, res) => {
     
     // Get restaurant details
     const [restaurants] = await pool.execute(
-      'SELECT * FROM Restaurants WHERE restaurant_id = ?',
+      'SELECT * FROM Restaurants WHERE id = ?',
       [id]
     );
 

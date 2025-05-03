@@ -135,16 +135,15 @@ router.get('/student/:studentId', async (req, res) => {
   }
 });
 
-// Get orders by restaurant
 router.get('/restaurant/:restaurantId', async (req, res) => {
   try {
     const [orders] = await executeQuery(`
-      SELECT o.*, r.name as restaurant_name, u.name as student_name 
+      SELECT o.*, r.name as restaurant_name, CONCAT(u.first_name, ' ', u.last_name) as student_name 
       FROM Orders o
       JOIN Restaurants r ON o.restaurant_id = r.id
-      JOIN Users u ON o.student_id = u.id
+      JOIN Users u ON o.user_id = u.user_id
       WHERE o.restaurant_id = ?
-      ORDER BY o.created_at DESC
+      ORDER BY o.order_time DESC
     `, [req.params.restaurantId]);
 
     res.json(orders);

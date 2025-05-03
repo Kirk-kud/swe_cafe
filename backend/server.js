@@ -49,7 +49,7 @@ async function testConnection() {
 testConnection();
 
 // JWT secret key
-const JWT_SECRET = process.env.JWT_SECRET || 'ashesi-eats-default-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || e1a91d4f76a5dd99e562086b0421d94be81809e37fcf3451b97cf8543551096d;
 
 // Middleware to verify JWT token
 const authenticateToken = async (req, res, next) => {
@@ -220,6 +220,6 @@ app.get('/api/restaurants/:id', async (req, res) => {
 });
 
 // Start server
-app.listen(8080, () => {
-  console.log("✅ Server started on port 8080");
+app.listen(3000, () => {
+  console.log("✅ Server started on port 3000");
 });
