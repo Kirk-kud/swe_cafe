@@ -6,6 +6,28 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to process and enhance user data
+  const processUserData = (userData) => {
+    if (!userData) return null;
+    
+    console.log("Processing user data:", userData);
+    
+    // Make sure we have a proper user object with role information
+    const enhancedUser = {
+      ...userData,
+      // Ensure we have role even if it comes as userType
+      role: userData.role || userData.userType || userData.user_type,
+      // Set admin flags if not already present
+      isAdmin: userData.isAdmin || userData.user_type === 'admin' || userData.role === 'admin',
+      // Check for restaurant admin status
+      isRestaurantAdmin: userData.isRestaurantAdmin || 
+                         (userData.restaurant_id && userData.restaurant_id > 0)
+    };
+    
+    console.log("Enhanced user data:", enhancedUser);
+    return enhancedUser;
+  };
+
   useEffect(() => {
     // Check for existing session on mount
     const checkSession = async () => {
@@ -22,7 +44,8 @@ export const AuthProvider = ({ children }) => {
         // to avoid flickering of UI while waiting for API response
         if (userData) {
           try {
-            setUser(JSON.parse(userData));
+            const parsedUser = JSON.parse(userData);
+            setUser(processUserData(parsedUser));
           } catch (e) {
             console.error('Failed to parse user data from localStorage', e);
           }
@@ -37,8 +60,9 @@ export const AuthProvider = ({ children }) => {
 
           if (response.ok) {
             const data = await response.json();
-            setUser(data.user);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            const processedUser = processUserData(data.user);
+            setUser(processedUser);
+            localStorage.setItem('user', JSON.stringify(processedUser));
           } else {
             // If session is invalid, clear the token and user data
             localStorage.removeItem('token');
@@ -72,9 +96,12 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
+        const processedUser = processUserData(data.user);
+        
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(processedUser));
+        
+        setUser(processedUser);
         return { success: true };
       } else {
         const error = await response.json();

@@ -222,16 +222,17 @@ CREATE TABLE `orders` (
   `scheduled_delivery_time` timestamp NULL DEFAULT NULL COMMENT 'For scheduled deliveries',
   `status` enum('pending','confirmed','preparing','ready_for_pickup','out_for_delivery','delivered','cancelled') DEFAULT 'pending',
   `total_amount` decimal(10,2) NOT NULL,
-  `payment_method` enum('account','cash','card') NOT NULL
+  `payment_method` enum('account','cash','card') NOT NULL,
+  `is_paid` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Whether the order has been paid for'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `user_id`, `restaurant_id`, `delivery_person_id`, `order_time`, `delivery_location`, `delivery_option`, `delivery_time_option`, `scheduled_delivery_time`, `status`, `total_amount`, `payment_method`) VALUES
-(1, 1, 1, 1, '2025-04-30 23:53:02', 'Charlotte', 'delivery', 'ASAP', NULL, 'delivered', 45.00, 'account'),
-(2, 1, 1, NULL, '2025-05-03 19:32:40', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 10.00, 'account');
+INSERT INTO `orders` (`order_id`, `user_id`, `restaurant_id`, `delivery_person_id`, `order_time`, `delivery_location`, `delivery_option`, `delivery_time_option`, `scheduled_delivery_time`, `status`, `total_amount`, `payment_method`, `is_paid`) VALUES
+(1, 1, 1, 1, '2025-04-30 23:53:02', 'Charlotte', 'delivery', 'ASAP', NULL, 'delivered', 45.00, 'account', 1),
+(2, 1, 1, NULL, '2025-05-03 19:32:40', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 10.00, 'account', 0);
 
 -- --------------------------------------------------------
 

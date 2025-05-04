@@ -147,10 +147,27 @@ export const CafeteriaService = {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      return await response.json();
+      
+      const data = await response.json();
+      
+      // Normalize the data to ensure all expected fields exist
+      return {
+        totalOrders: data.totalOrders || data.orders || 0,
+        pendingOrders: data.pendingOrders || 0,
+        completedOrders: data.completedOrders || 0,
+        todayRevenue: data.todayRevenue || (data.revenue ? `₵${data.revenue}` : '₵0'),
+        popularItems: Array.isArray(data.popularItems) ? data.popularItems : []
+      };
     } catch (error) {
       console.error('Error fetching restaurant stats:', error);
-      throw error;
+      // Return default data structure on error
+      return {
+        totalOrders: 0,
+        pendingOrders: 0,
+        completedOrders: 0,
+        todayRevenue: '₵0',
+        popularItems: []
+      };
     }
   },
 
@@ -175,6 +192,31 @@ export const CafeteriaService = {
       return await response.json();
     } catch (error) {
       console.error('Error updating restaurant settings:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update order payment status
+   * @param {string} orderId - The ID of the order
+   * @param {boolean} isPaid - Whether the order is paid for
+   * @returns {Promise<Object>} - The updated order
+   */
+  async updateOrderPaymentStatus(orderId, isPaid) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/payment`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ is_paid: isPaid })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating payment status:', error);
       throw error;
     }
   }

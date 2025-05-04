@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from "../../context/AuthContext";
 import CafeteriaService from "../../api/cafeteriaService";
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const CafeteriaManagement = () => {
   const [activeTab, setActiveTab] = useState('Menu');
@@ -68,7 +69,17 @@ const CafeteriaManagement = () => {
   const fetchStats = async () => {
     try {
       const data = await CafeteriaService.getRestaurantStats(activeRestaurantId);
-      setCafeteriaStats(data);
+      
+      // Normalize data to ensure all fields exist
+      const normalizedData = {
+        totalOrders: data.totalOrders || data.orders || 0,
+        pendingOrders: data.pendingOrders || 0,
+        completedOrders: data.completedOrders || 0,
+        todayRevenue: data.todayRevenue || (data.revenue ? `₵${data.revenue}` : '₵0'),
+        popularItems: Array.isArray(data.popularItems) ? data.popularItems : []
+      };
+      
+      setCafeteriaStats(normalizedData);
     } catch (error) {
       console.error('Error fetching statistics:', error);
       // Calculate stats from available orders as a fallback
@@ -76,16 +87,21 @@ const CafeteriaManagement = () => {
         const pendingCount = orders.filter(o => o.status === 'Pending' || o.status === 'Preparing').length;
         const completedCount = orders.filter(o => o.status === 'Delivered' || o.status === 'Ready').length;
         const todayTotal = orders.reduce((sum, order) => {
-          const amount = parseFloat(order.amount.replace('₵', ''));
+          const amount = parseFloat(order.amount?.replace('₵', '') || '0');
           return sum + (isNaN(amount) ? 0 : amount);
         }, 0);
         
-        // Count occurrences of each item
+        // Count occurrences of each item safely
         const itemCounts = {};
         orders.forEach(order => {
-          order.items.forEach(item => {
-            itemCounts[item] = (itemCounts[item] || 0) + 1;
-          });
+          if (Array.isArray(order.items)) {
+            order.items.forEach(item => {
+              if (item) {
+                const itemName = String(item);
+                itemCounts[itemName] = (itemCounts[itemName] || 0) + 1;
+              }
+            });
+          }
         });
         
         // Sort items by popularity
@@ -100,6 +116,15 @@ const CafeteriaManagement = () => {
           completedOrders: completedCount,
           todayRevenue: `₵${todayTotal.toFixed(2)}`,
           popularItems
+        });
+      } else {
+        // Set defaults if no orders available
+        setCafeteriaStats({
+          totalOrders: 0,
+          pendingOrders: 0,
+          completedOrders: 0,
+          todayRevenue: '₵0',
+          popularItems: []
         });
       }
     }
@@ -168,7 +193,10 @@ const CafeteriaManagement = () => {
     if (!confirm('Are you sure you want to delete this menu item?')) return;
     
     try {
-      await CafeteriaService.deleteMenuItem(itemId);
+      // Ensure itemId is properly formatted
+      const formattedItemId = String(itemId);
+      
+      await CafeteriaService.deleteMenuItem(formattedItemId);
       // Refresh menu items after deletion
       await fetchMenuItems();
     } catch (error) {
@@ -179,14 +207,27 @@ const CafeteriaManagement = () => {
 
   // Edit menu item
   const handleEditMenuItem = (item) => {
+    // Handle property name differences
+    const itemName = item.name || item.item_name || '';
+    const itemPrice = item.price || 0;
+    const itemCategory = item.category || 'Main Course';
+    const itemAvailable = item.available !== undefined ? item.available : true;
+    const itemImage = item.image || item.image_url || '';
+    const itemDescription = item.description || '';
+    
+    // Format price - remove currency symbol if present
+    const formattedPrice = typeof itemPrice === 'string' ? 
+      itemPrice.replace('₵', '').trim() : 
+      itemPrice.toString();
+    
     setEditingMenuItem(item);
     setNewMenuItem({
-      name: item.name,
-      price: item.price.replace('₵', ''),
-      category: item.category,
-      available: item.available,
-      image: item.image,
-      description: item.description || ''
+      name: itemName,
+      price: formattedPrice,
+      category: itemCategory,
+      available: itemAvailable,
+      image: itemImage,
+      description: itemDescription
     });
     setShowAddMenuItemForm(true);
   };
@@ -194,7 +235,10 @@ const CafeteriaManagement = () => {
   // Update order status
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
-      await CafeteriaService.updateOrderStatus(orderId, newStatus);
+      // Ensure orderId is properly formatted
+      const formattedOrderId = String(orderId);
+      
+      await CafeteriaService.updateOrderStatus(formattedOrderId, newStatus);
       // Refresh orders after status update
       await fetchOrders();
       // Also refresh stats as this may affect them
@@ -205,19 +249,56 @@ const CafeteriaManagement = () => {
     }
   };
 
+  // Update payment status
+  const handleUpdatePaymentStatus = async (orderId, isPaid) => {
+    try {
+      // Ensure orderId is properly formatted
+      const formattedOrderId = String(orderId);
+      
+      await CafeteriaService.updateOrderPaymentStatus(formattedOrderId, isPaid);
+      // Refresh orders after payment status update
+      await fetchOrders();
+      // Also refresh stats as this may affect them
+      await fetchStats();
+      
+      alert(`Order marked as ${isPaid ? 'paid' : 'unpaid'}`);
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      alert('Failed to update payment status. Please try again.');
+    }
+  };
+
   // Filter menu items based on search term
-  const filteredMenuItems = menuItems.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMenuItems = menuItems.filter(item => {
+    // Handle property name differences between API and frontend
+    const itemName = item.name || item.item_name || '';
+    const itemCategory = item.category || '';
+    const search = searchTerm.toLowerCase();
+    
+    return itemName.toLowerCase().includes(search) ||
+           itemCategory.toLowerCase().includes(search);
+  });
 
   // Filter orders based on search term
-  const filteredOrders = orders.filter(order => 
-    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.items.some(item => item.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredOrders = orders.filter(order => {
+    if (!order) return false;
+    
+    // Convert all values to strings explicitly
+    const id = String(order.id || '');
+    const customer = String(order.customer || '');
+    const status = String(order.status || '');
+    const search = searchTerm.toLowerCase();
+    
+    // Ensure items array exists before calling some() on it
+    const itemsMatch = Array.isArray(order.items) ? 
+      order.items.some(item => String(item || '').toLowerCase().includes(search)) : 
+      false;
+    
+    return id.toLowerCase().includes(search) ||
+           customer.toLowerCase().includes(search) ||
+           status.toLowerCase().includes(search) ||
+           itemsMatch;
+  });
 
   // Navigation tabs
   const tabs = [
@@ -348,133 +429,195 @@ const CafeteriaManagement = () => {
   );
 
   // Menu Item component
-  const MenuItem = ({ item }) => (
-    <div className="bg-white rounded-lg shadow p-4 flex">
-      <img 
-        src={item.image} 
-        alt={item.name} 
-        className="w-20 h-20 object-cover rounded-lg mr-4"
-        onError={(e) => {
-          e.target.src = "https://via.placeholder.com/80x80?text=Food"; 
-        }}
-      />
-      <div className="flex-1">
-        <div className="flex justify-between">
-          <h3 className="font-bold">{item.name}</h3>
-          <span className="font-bold text-red-900">{typeof item.price === 'string' && item.price.includes('₵') ? item.price : `₵${item.price}`}</span>
-        </div>
-        <p className="text-gray-500 text-sm">{item.category}</p>
-        {item.description && <p className="text-gray-600 text-sm mt-1">{item.description}</p>}
-        <div className="flex justify-between items-center mt-2">
-          <span className={`px-2 py-1 rounded-full text-xs ${item.available ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}`}>
-            {item.available ? 'Available' : 'Unavailable'}
-          </span>
-          <div className="flex space-x-2">
-            <button 
-              className="p-1 text-blue-500 hover:bg-blue-50 rounded"
-              onClick={() => handleEditMenuItem(item)}
-            >
-              <Edit size={16} />
-            </button>
-            <button 
-              className="p-1 text-red-500 hover:bg-red-50 rounded"
-              onClick={() => handleDeleteMenuItem(item.id)}
-            >
-              <Trash size={16} />
-            </button>
+  const MenuItem = ({ item }) => {
+    // Handle property name differences
+    const itemId = item.id || item.item_id;
+    const itemName = item.name || item.item_name || 'Unnamed Item';
+    const itemCategory = item.category || '';
+    const itemDescription = item.description || '';
+    const itemImage = item.image || item.image_url;
+    const itemPrice = item.price || 0;
+    const itemAvailable = item.available !== undefined ? item.available : true;
+    
+    return (
+      <div className="bg-white rounded-lg shadow p-4 flex">
+        <img 
+          src={itemImage} 
+          alt={itemName} 
+          className="w-20 h-20 object-cover rounded-lg mr-4"
+          onError={(e) => {
+            e.target.src = "https://via.placeholder.com/80x80?text=Food"; 
+          }}
+        />
+        <div className="flex-1">
+          <div className="flex justify-between">
+            <h3 className="font-bold">{itemName}</h3>
+            <span className="font-bold text-red-900">{typeof itemPrice === 'string' && itemPrice.includes('₵') ? itemPrice : `₵${itemPrice}`}</span>
+          </div>
+          <p className="text-gray-500 text-sm">{itemCategory}</p>
+          {itemDescription && <p className="text-gray-600 text-sm mt-1">{itemDescription}</p>}
+          <div className="flex justify-between items-center mt-2">
+            <span className={`px-2 py-1 rounded-full text-xs ${itemAvailable ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}`}>
+              {itemAvailable ? 'Available' : 'Unavailable'}
+            </span>
+            <div className="flex space-x-2">
+              <button 
+                className="p-1 text-blue-500 hover:bg-blue-50 rounded"
+                onClick={() => handleEditMenuItem(item)}
+              >
+                <Edit size={16} />
+              </button>
+              <button 
+                className="p-1 text-red-500 hover:bg-red-50 rounded"
+                onClick={() => handleDeleteMenuItem(itemId)}
+              >
+                <Trash size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Order Item component
-  const OrderItem = ({ order }) => (
-    <div className="bg-white rounded-lg shadow p-4">
-      <div className="flex justify-between items-center mb-2">
-        <span className="font-semibold">{order.id}</span>
-        <span className={`px-2 py-1 rounded-full text-xs ${getStatusStyle(order.status)}`}>
-          {order.status}
-        </span>
-      </div>
-      <p className="text-sm">{order.customer}</p>
-      <div className="my-2">
-        {order.items.map((item, index) => (
-          <span key={index} className="text-sm text-gray-600 block">• {item}</span>
-        ))}
-      </div>
-      <div className="flex justify-between text-sm">
-        <span>{order.time}</span>
-        <span className="font-bold">{order.amount}</span>
-      </div>
-      <div className="flex justify-end space-x-2 mt-3">
-        {order.status === 'Pending' && (
-          <button 
-            className="bg-yellow-500 text-white px-3 py-1 rounded text-sm"
-            onClick={() => handleUpdateOrderStatus(order.id, 'Preparing')}
-          >
-            Start Preparing
-          </button>
-        )}
-        {order.status === 'Preparing' && (
-          <button 
-            className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-            onClick={() => handleUpdateOrderStatus(order.id, 'Ready')}
-          >
-            Mark as Ready
-          </button>
-        )}
-        {order.status === 'Ready' && (
-          <button 
-            className="bg-green-500 text-white px-3 py-1 rounded text-sm"
-            onClick={() => handleUpdateOrderStatus(order.id, 'Delivered')}
-          >
-            Complete Order
-          </button>
-        )}
-        <button className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm">
-          Details
-        </button>
-      </div>
-    </div>
-  );
-
-  // Analytics summary component
-  const AnalyticsSummary = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-2">Orders</h3>
-        <div className="flex justify-between">
-          <div>
-            <p className="text-2xl font-bold">{cafeteriaStats.totalOrders}</p>
-            <p className="text-sm text-gray-500">Total Orders Today</p>
-          </div>
-          <div className="flex flex-col items-end">
-            <p className="text-green-500 font-semibold">{cafeteriaStats.completedOrders}</p>
-            <p className="text-sm text-gray-500">Completed</p>
-            <p className="text-orange-500 font-semibold">{cafeteriaStats.pendingOrders}</p>
-            <p className="text-sm text-gray-500">Pending</p>
+  const OrderItem = ({ order }) => {
+    if (!order) return null;
+    
+    // Ensure all properties have proper defaults and type conversions
+    const id = String(order.id || '');
+    const status = String(order.status || '');
+    const customer = String(order.customer || '');
+    const time = String(order.time || '');
+    const amount = String(order.amount || '');
+    const items = Array.isArray(order.items) ? order.items : [];
+    const isPaid = Boolean(order.is_paid || order.isPaid);
+    
+    return (
+      <div className="bg-white rounded-lg shadow p-4">
+        <div className="flex justify-between items-center mb-2">
+          <span className="font-semibold">{id}</span>
+          <div className="flex space-x-2">
+            <span className={`px-2 py-1 rounded-full text-xs ${getStatusStyle(status)}`}>
+              {status}
+            </span>
+            <span className={`px-2 py-1 rounded-full text-xs ${isPaid ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+              {isPaid ? 'Paid' : 'Unpaid'}
+            </span>
           </div>
         </div>
-      </div>
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-2">Revenue</h3>
-        <p className="text-2xl font-bold">{cafeteriaStats.todayRevenue}</p>
-        <p className="text-sm text-gray-500">Total Revenue Today</p>
-      </div>
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-2">Popular Items</h3>
-        <ul className="text-sm">
-          {cafeteriaStats.popularItems.map((item, index) => (
-            <li key={index} className="py-1 flex items-center">
-              <span className="inline-block w-4 h-4 bg-red-900 rounded-full mr-2"></span>
-              {item}
-            </li>
+        <p className="text-sm">{customer}</p>
+        <div className="my-2">
+          {items.map((item, index) => (
+            <span key={index} className="text-sm text-gray-600 block">• {String(item || '')}</span>
           ))}
-        </ul>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span>{time}</span>
+          <span className="font-bold">{amount}</span>
+        </div>
+        <div className="flex flex-wrap justify-end space-x-2 mt-3">
+          {/* Order preparation status buttons */}
+          {status === 'Pending' && (
+            <button 
+              className="bg-yellow-500 text-white px-3 py-1 rounded text-sm my-1"
+              onClick={() => handleUpdateOrderStatus(id, 'Preparing')}
+            >
+              Start Preparing
+            </button>
+          )}
+          {status === 'Preparing' && (
+            <button 
+              className="bg-blue-500 text-white px-3 py-1 rounded text-sm my-1"
+              onClick={() => handleUpdateOrderStatus(id, 'Ready')}
+            >
+              Mark as Ready
+            </button>
+          )}
+          {status === 'Ready' && (
+            <button 
+              className="bg-green-500 text-white px-3 py-1 rounded text-sm my-1"
+              onClick={() => handleUpdateOrderStatus(id, 'Delivered')}
+            >
+              Complete Order
+            </button>
+          )}
+          
+          {/* Payment status buttons */}
+          {!isPaid && (
+            <button 
+              className="bg-purple-500 text-white px-3 py-1 rounded text-sm my-1"
+              onClick={() => handleUpdatePaymentStatus(id, true)}
+            >
+              Mark as Paid
+            </button>
+          )}
+          {isPaid && (
+            <button 
+              className="bg-red-400 text-white px-3 py-1 rounded text-sm my-1"
+              onClick={() => handleUpdatePaymentStatus(id, false)}
+            >
+              Mark as Unpaid
+            </button>
+          )}
+          
+          <button className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm my-1">
+            Details
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  // Analytics summary component
+  const AnalyticsSummary = () => {
+    // Ensure we have valid data with proper defaults
+    const totalOrders = cafeteriaStats.totalOrders || 0;
+    const completedOrders = cafeteriaStats.completedOrders || 0;
+    const pendingOrders = cafeteriaStats.pendingOrders || 0;
+    const todayRevenue = cafeteriaStats.todayRevenue || '₵0';
+    const popularItems = Array.isArray(cafeteriaStats.popularItems) ? cafeteriaStats.popularItems : [];
+    
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-2">Orders</h3>
+          <div className="flex justify-between">
+            <div>
+              <p className="text-2xl font-bold">{totalOrders}</p>
+              <p className="text-sm text-gray-500">Total Orders Today</p>
+            </div>
+            <div className="flex flex-col items-end">
+              <p className="text-green-500 font-semibold">{completedOrders}</p>
+              <p className="text-sm text-gray-500">Completed</p>
+              <p className="text-orange-500 font-semibold">{pendingOrders}</p>
+              <p className="text-sm text-gray-500">Pending</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-2">Revenue</h3>
+          <p className="text-2xl font-bold">{todayRevenue}</p>
+          <p className="text-sm text-gray-500">Total Revenue Today</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-2">Popular Items</h3>
+          {popularItems.length > 0 ? (
+            <ul className="text-sm">
+              {popularItems.map((item, index) => (
+                <li key={index} className="py-1 flex items-center">
+                  <span className="inline-block w-4 h-4 bg-red-900 rounded-full mr-2"></span>
+                  {String(item || '')}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500">No data available</p>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   // Settings component
   const CafeteriaSettings = () => {
@@ -588,6 +731,34 @@ const CafeteriaManagement = () => {
         </button>
       </div>
       </form>
+    );
+  };
+
+  // Password Input component
+  const PasswordInput = ({ value, onChange, placeholder = "Password" }) => {
+    const [showPassword, setShowPassword] = useState(false);
+    
+    const togglePasswordVisibility = () => {
+      setShowPassword(!showPassword);
+    };
+    
+    return (
+      <div className="password-input-container">
+        <input
+          type={showPassword ? "text" : "password"}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="password-input"
+        />
+        <button
+          type="button"
+          onClick={togglePasswordVisibility}
+          className="password-toggle-btn"
+        >
+          {showPassword ? <FaEyeSlash /> : <FaEye />}
+        </button>
+      </div>
     );
   };
 
