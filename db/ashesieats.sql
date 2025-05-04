@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 04, 2025 at 06:07 PM
+-- Generation Time: May 04, 2025 at 07:25 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -203,7 +203,9 @@ INSERT INTO `orderitems` (`order_item_id`, `order_id`, `item_id`, `quantity`, `i
 (2, 1, 4, 2, 5.00),
 (3, 1, 3, 1, 10.00),
 (4, 2, 3, 1, 10.00),
-(5, 3, 6, 1, 30.00);
+(5, 3, 6, 1, 30.00),
+(6, 4, 1, 1, 15.00),
+(7, 4, 3, 1, 10.00);
 
 -- --------------------------------------------------------
 
@@ -235,7 +237,8 @@ CREATE TABLE `orders` (
 INSERT INTO `orders` (`order_id`, `user_id`, `restaurant_id`, `delivery_person_id`, `order_time`, `delivery_location`, `delivery_option`, `delivery_time_option`, `scheduled_delivery_time`, `status`, `total_amount`, `payment_method`, `is_paid`, `updated_at`) VALUES
 (1, 1, 1, 1, '2025-04-30 23:53:02', 'Charlotte', 'delivery', 'ASAP', NULL, 'delivered', 45.00, 'account', 1, '2025-04-30 23:53:02'),
 (2, 1, 1, NULL, '2025-05-03 19:32:40', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 10.00, 'account', 1, '2025-05-04 15:57:44'),
-(3, 1, 2, NULL, '2025-05-04 15:21:45', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 30.00, 'cash', 0, NULL);
+(3, 1, 2, NULL, '2025-05-04 15:21:45', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 30.00, 'cash', 0, NULL),
+(4, 1, 1, NULL, '2025-05-04 17:06:21', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 25.00, 'cash', 1, '2025-05-04 17:07:44');
 
 -- --------------------------------------------------------
 
@@ -267,21 +270,6 @@ INSERT INTO `restaurants` (`id`, `name`, `description`, `image_url`, `rating`, `
 -- --------------------------------------------------------
 
 --
--- Table structure for table `restaurant_administrators`
---
-
-CREATE TABLE `restaurant_administrators` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `restaurant_id` int(255) NOT NULL,
-  `permission_level` enum('full_access','menu_only','orders_only','reports_only') NOT NULL DEFAULT 'full_access',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `created_by` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `restaurant_admins`
 --
 
@@ -289,17 +277,19 @@ CREATE TABLE `restaurant_admins` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `restaurant_id` int(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `permission_level` enum('full_access','menu_only','orders_only','reports_only','partial_access') NOT NULL DEFAULT 'partial_access'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `restaurant_admins`
 --
 
-INSERT INTO `restaurant_admins` (`id`, `user_id`, `restaurant_id`, `created_at`) VALUES
-(1, 6, 1, '2025-05-03 19:57:01'),
-(2, 7, 2, '2025-05-03 19:57:01'),
-(3, 8, 3, '2025-05-03 19:57:01');
+INSERT INTO `restaurant_admins` (`id`, `user_id`, `restaurant_id`, `created_at`, `permission_level`) VALUES
+(1, 6, 1, '2025-05-03 19:57:01', 'partial_access'),
+(2, 7, 2, '2025-05-03 19:57:01', 'partial_access'),
+(3, 8, 3, '2025-05-03 19:57:01', 'partial_access'),
+(4, 9, 3, '2025-05-04 17:12:26', 'full_access');
 
 -- --------------------------------------------------------
 
@@ -346,7 +336,8 @@ INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `phone`, `pa
 (1, 'Kirk', 'Kudoto', 'kirk.kudoto@ashesi.edu.gh', '0503895451', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'student'),
 (6, 'Akornor', 'Admin', 'akornor.admin@ashesi.edu.gh', '0240123456', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'admin'),
 (7, 'Hallmark', 'Admin', 'hallmark.admin@ashesi.edu.gh', '0550987654', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'admin'),
-(8, 'Munchies', 'Admin', 'munchies.admin@ashesi.edu.gh', '0277456123', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'admin');
+(8, 'Munchies', 'Admin', 'munchies.admin@ashesi.edu.gh', '0277456123', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'admin'),
+(9, 'Super', 'Admin', 'super.admin@ashesi.edu.gh', '0201234567', '$2b$10$sxqLLe098X1vFOBTF/dmMudDNo1/A6luGmMzyw0d1Zf21LS4A.av2', 'admin');
 
 --
 -- Indexes for dumped tables
@@ -417,15 +408,6 @@ ALTER TABLE `restaurants`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `restaurant_administrators`
---
-ALTER TABLE `restaurant_administrators`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_restaurant_unique` (`user_id`,`restaurant_id`),
-  ADD KEY `fk_admin_user` (`user_id`),
-  ADD KEY `fk_admin_restaurant` (`restaurant_id`);
-
---
 -- Indexes for table `restaurant_admins`
 --
 ALTER TABLE `restaurant_admins`
@@ -485,25 +467,19 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `orderitems`
 --
 ALTER TABLE `orderitems`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `restaurant_administrators`
---
-ALTER TABLE `restaurant_administrators`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `restaurant_admins`
 --
 ALTER TABLE `restaurant_admins`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `useraccounts`
@@ -515,7 +491,7 @@ ALTER TABLE `useraccounts`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Constraints for dumped tables
@@ -561,13 +537,6 @@ ALTER TABLE `orders`
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`delivery_person_id`) REFERENCES `deliverypersons` (`delivery_person_id`),
   ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`);
-
---
--- Constraints for table `restaurant_administrators`
---
-ALTER TABLE `restaurant_administrators`
-  ADD CONSTRAINT `fk_admin_restaurant` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_admin_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `restaurant_admins`

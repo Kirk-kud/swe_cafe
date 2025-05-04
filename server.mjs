@@ -155,6 +155,7 @@ app.post('/api/auth/login', async (req, res) => {
     // 5. Check if user is a restaurant admin
     let isRestaurantAdmin = false;
     let restaurantId = null;
+    let permissionLevel = null;
     
     // First check if user is an admin in user_type
     const isAdmin = user.user_type === 'admin';
@@ -168,17 +169,8 @@ app.post('/api/auth/login', async (req, res) => {
     if (restaurantAdmins.length > 0) {
       isRestaurantAdmin = true;
       restaurantId = restaurantAdmins[0].restaurant_id;
-    } else {
-      // Check restaurant_administrators table as fallback
-      const [restaurantAdministrators] = await pool.execute(
-        'SELECT * FROM restaurant_administrators WHERE user_id = ?',
-        [user.user_id]
-      );
-      
-      if (restaurantAdministrators.length > 0) {
-        isRestaurantAdmin = true;
-        restaurantId = restaurantAdministrators[0].restaurant_id;
-      }
+      // Get the permission level from restaurant_admins table
+      permissionLevel = restaurantAdmins[0].permission_level || 'partial_access';
     }
     
     // 6. Generate minimal token
@@ -198,7 +190,8 @@ app.post('/api/auth/login', async (req, res) => {
         role: user.user_type,
         isAdmin: isAdmin,
         isRestaurantAdmin: isRestaurantAdmin,
-        restaurant_id: restaurantId
+        restaurant_id: restaurantId,
+        permissionLevel: permissionLevel
       }
     });
 
@@ -364,20 +357,8 @@ app.get('/api/auth/session', authenticateToken, async (req, res) => {
     if (restaurantAdmins.length > 0) {
       isRestaurantAdmin = true;
       restaurantId = restaurantAdmins[0].restaurant_id;
-      // restaurant_admins table doesn't have permission level, assume full_access
-      permissionLevel = 'full_access';
-    } else {
-      // Check restaurant_administrators table as fallback
-      const [restaurantAdministrators] = await pool.execute(
-        'SELECT * FROM restaurant_administrators WHERE user_id = ?',
-        [user.user_id]
-      );
-      
-      if (restaurantAdministrators.length > 0) {
-        isRestaurantAdmin = true;
-        restaurantId = restaurantAdministrators[0].restaurant_id;
-        permissionLevel = restaurantAdministrators[0].permission_level || 'full_access';
-      }
+      // Get the permission level from restaurant_admins table
+      permissionLevel = restaurantAdmins[0].permission_level || 'partial_access';
     }
     
     res.json({

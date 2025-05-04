@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
                          (userData.restaurant_id && userData.restaurant_id > 0)
     };
     
-    console.log("Enhanced user data:", enhancedUser);
+    //console.log("Enhanced user data:", enhancedUser);
     return enhancedUser;
   };
 
@@ -58,14 +58,14 @@ export const AuthProvider = ({ children }) => {
             }
           });
 
-          console.log('Session validation response:', {
-            status: response.status,
-            ok: response.ok
-          });
+          // console.log('Session validation response:', {
+          //   status: response.status,
+          //   ok: response.ok
+          // });
 
           if (response.ok) {
             const data = await response.json();
-            console.log('Session data received:', data);
+            //console.log('Session data received:', data);
             const processedUser = processUserData(data.user);
             setUser(processedUser);
             localStorage.setItem('user', JSON.stringify(processedUser));
