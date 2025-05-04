@@ -256,8 +256,16 @@ const CafeteriaManagement = () => {
       const formattedOrderId = String(orderId);
       
       await CafeteriaService.updateOrderPaymentStatus(formattedOrderId, isPaid);
-      // Refresh orders after payment status update
-      await fetchOrders();
+      
+      // Update order in local state
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === orderId 
+            ? { ...order, isPaid: isPaid, is_paid: isPaid } 
+            : order
+        )
+      );
+      
       // Also refresh stats as this may affect them
       await fetchStats();
       
@@ -491,6 +499,7 @@ const CafeteriaManagement = () => {
     const time = String(order.time || '');
     const amount = String(order.amount || '');
     const items = Array.isArray(order.items) ? order.items : [];
+    // Check both is_paid and isPaid fields for backward compatibility
     const isPaid = Boolean(order.is_paid || order.isPaid);
     
     return (
@@ -858,7 +867,7 @@ const CafeteriaManagement = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredMenuItems.map((item) => (
-                  <MenuItem key={item.id} item={item} />
+                  <MenuItem key={item.id || item.item_id} item={item} />
                 ))}
               </div>
             )}
