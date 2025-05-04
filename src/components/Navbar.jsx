@@ -3,14 +3,35 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, user, loading } = useAuth();
   
-  // Debug user information 
+  // Enhanced debugging for authentication state
   useEffect(() => {
+    // console.log("Auth state in Navbar:", { 
+    //   isAuthenticated, 
+    //   userExists: !!user, 
+    //   loading,
+    //   token: localStorage.getItem('token'),
+    //   storedUserData: localStorage.getItem('user')
+    // });
+    
     if (user) {
-      console.log("User data in Navbar:", user);
+      //console.log("User data in Navbar:", user);
+    } else {
+      console.log("User is null in Navbar");
+      // Check if there's data in localStorage that's not being loaded properly
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          console.log("Found user data in localStorage:", JSON.parse(storedUser));
+        } catch (e) {
+          console.error("Failed to parse user data from localStorage", e);
+        }
+      } else {
+        console.log("No user data found in localStorage");
+      }
     }
-  }, [user]);
+  }, [user, isAuthenticated, loading]);
   
   // Check if user is a cafeteria admin
   // Check multiple possible admin indicators
@@ -18,11 +39,16 @@ const Navbar = () => {
     user.user_type === 'admin' || 
     user.role === 'admin' || 
     user.isAdmin === true ||
-    user.isRestaurantAdmin === true || 
-    (user.restaurant_id && user.restaurant_id > 0)
+    user.isRestaurantAdmin === true
   );
   
-  console.log("Is cafeteria admin?", isCafeteriaAdmin);
+  // Check if user has full access permission
+  const hasFullAccess = user && (
+    user.permissionLevel === 'full_access' || 
+    user.user_type === 'admin' // System admins always have full access
+  );
+  
+  // console.log("Is cafeteria admin?", isCafeteriaAdmin);
 
   return (
     <nav>
@@ -39,7 +65,8 @@ const Navbar = () => {
           </li>
           {isAuthenticated && (
             <>
-              {isCafeteriaAdmin && (
+              {/* Only show Dashboard for users with full access permission */}
+              {hasFullAccess && (
                 <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
                   <Link to="/admin/dashboard">Dashboard</Link>
                 </li>

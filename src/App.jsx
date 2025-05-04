@@ -39,6 +39,7 @@ const App = () => {
         <OrderProvider>
           <PaymentProvider>
             <div className="min-h-screen flex flex-col">
+              <Heading />
               <Navbar />
               <main className="flex-grow">
                 <Routes>

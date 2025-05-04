@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 03, 2025 at 11:11 PM
+-- Generation Time: May 04, 2025 at 06:07 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -202,7 +202,8 @@ INSERT INTO `orderitems` (`order_item_id`, `order_id`, `item_id`, `quantity`, `i
 (1, 1, 2, 1, 25.00),
 (2, 1, 4, 2, 5.00),
 (3, 1, 3, 1, 10.00),
-(4, 2, 3, 1, 10.00);
+(4, 2, 3, 1, 10.00),
+(5, 3, 6, 1, 30.00);
 
 -- --------------------------------------------------------
 
@@ -223,16 +224,18 @@ CREATE TABLE `orders` (
   `status` enum('pending','confirmed','preparing','ready_for_pickup','out_for_delivery','delivered','cancelled') DEFAULT 'pending',
   `total_amount` decimal(10,2) NOT NULL,
   `payment_method` enum('account','cash','card') NOT NULL,
-  `is_paid` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Whether the order has been paid for'
+  `is_paid` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Whether the order has been paid for',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT 'Timestamp when order was last updated'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `user_id`, `restaurant_id`, `delivery_person_id`, `order_time`, `delivery_location`, `delivery_option`, `delivery_time_option`, `scheduled_delivery_time`, `status`, `total_amount`, `payment_method`, `is_paid`) VALUES
-(1, 1, 1, 1, '2025-04-30 23:53:02', 'Charlotte', 'delivery', 'ASAP', NULL, 'delivered', 45.00, 'account', 1),
-(2, 1, 1, NULL, '2025-05-03 19:32:40', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 10.00, 'account', 0);
+INSERT INTO `orders` (`order_id`, `user_id`, `restaurant_id`, `delivery_person_id`, `order_time`, `delivery_location`, `delivery_option`, `delivery_time_option`, `scheduled_delivery_time`, `status`, `total_amount`, `payment_method`, `is_paid`, `updated_at`) VALUES
+(1, 1, 1, 1, '2025-04-30 23:53:02', 'Charlotte', 'delivery', 'ASAP', NULL, 'delivered', 45.00, 'account', 1, '2025-04-30 23:53:02'),
+(2, 1, 1, NULL, '2025-05-03 19:32:40', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 10.00, 'account', 1, '2025-05-04 15:57:44'),
+(3, 1, 2, NULL, '2025-05-04 15:21:45', 'Pickup at restaurant', 'pickup', '', NULL, 'pending', 30.00, 'cash', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -275,13 +278,6 @@ CREATE TABLE `restaurant_administrators` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `created_by` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `restaurant_administrators`
---
-
-INSERT INTO `restaurant_administrators` (`id`, `user_id`, `restaurant_id`, `permission_level`, `created_at`, `created_by`) VALUES
-(1, 1, 1, 'full_access', '2025-05-03 19:04:02', NULL);
 
 -- --------------------------------------------------------
 
@@ -489,13 +485,13 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `orderitems`
 --
 ALTER TABLE `orderitems`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `restaurant_administrators`

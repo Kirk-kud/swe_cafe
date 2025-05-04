@@ -4,9 +4,33 @@ import { useAuth } from "../context/AuthContext";
 const Heading = () => {
   const { user, isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) {
+  // Don't render if not authenticated or no user
+  if (!isAuthenticated || !user) {
     return null;
   }
+
+  // Get the first letter of the user's name for the avatar
+  const getInitial = () => {
+    if (user.fullName && user.fullName.length > 0) {
+      return user.fullName[0].toUpperCase();
+    } else if (user.first_name && user.first_name.length > 0) {
+      return user.first_name[0].toUpperCase();
+    } else if (user.email && user.email.length > 0) {
+      return user.email[0].toUpperCase();
+    }
+    return 'U';
+  };
+
+  // Get the user's display name
+  const getDisplayName = () => {
+    if (user.fullName) {
+      return user.fullName;
+    } else if (user.first_name || user.last_name) {
+      return `${user.first_name || ''} ${user.last_name || ''}`.trim();
+    } else {
+      return 'User';
+    }
+  };
 
   return (
     <div className="flex items-center justify-between w-full bg-gray-100 py-2 px-4">
@@ -38,11 +62,11 @@ const Heading = () => {
       <div className="flex items-center gap-4">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-semibold">
-            {user?.fullName?.[0] || 'U'}
+            {getInitial()}
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium">Welcome, {user?.fullName}</p>
-            <p className="text-xs text-gray-500">{user?.email}</p>
+            <p className="text-sm font-medium">Welcome, {getDisplayName()}</p>
+            <p className="text-xs text-gray-500">{user.email}</p>
           </div>
         </div>
       </div>
