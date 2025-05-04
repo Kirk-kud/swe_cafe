@@ -139,9 +139,9 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    // 3. Find user by email (only essential fields)
+    // 3. Find user by email (get all fields)
     const [users] = await pool.execute(
-      'SELECT user_id, password_hash FROM Users WHERE email = ?',
+      'SELECT * FROM Users WHERE email = ?',
       [email]
     );
 
@@ -149,13 +149,58 @@ app.post('/api/auth/login', async (req, res) => {
     if (users.length === 0 || !(await bcrypt.compare(password, users[0].password_hash))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    // 5. Generate minimal token
-    const token = jwt.sign({ userId: users[0].user_id }, process.env.JWT_SECRET, {
+    
+    const user = users[0];
+    
+    // 5. Check if user is a restaurant admin
+    let isRestaurantAdmin = false;
+    let restaurantId = null;
+    
+    // First check if user is an admin in user_type
+    const isAdmin = user.user_type === 'admin';
+    
+    // Check restaurant_admins table
+    const [restaurantAdmins] = await pool.execute(
+      'SELECT * FROM restaurant_admins WHERE user_id = ?',
+      [user.user_id]
+    );
+    
+    if (restaurantAdmins.length > 0) {
+      isRestaurantAdmin = true;
+      restaurantId = restaurantAdmins[0].restaurant_id;
+    } else {
+      // Check restaurant_administrators table as fallback
+      const [restaurantAdministrators] = await pool.execute(
+        'SELECT * FROM restaurant_administrators WHERE user_id = ?',
+        [user.user_id]
+      );
+      
+      if (restaurantAdministrators.length > 0) {
+        isRestaurantAdmin = true;
+        restaurantId = restaurantAdministrators[0].restaurant_id;
+      }
+    }
+    
+    // 6. Generate minimal token
+    const token = jwt.sign({ userId: user.user_id }, process.env.JWT_SECRET || 'your-secret-key', {
       expiresIn: '24h'
     });
 
-    // 6. Return only authentication confirmation
-    res.json({ token });
+    // 7. Return token and user data
+    res.json({
+      token,
+      user: {
+        id: user.user_id,
+        email: user.email,
+        fullName: `${user.first_name} ${user.last_name}`,
+        phoneNumber: user.phone,
+        user_type: user.user_type,
+        role: user.user_type,
+        isAdmin: isAdmin,
+        isRestaurantAdmin: isRestaurantAdmin,
+        restaurant_id: restaurantId
+      }
+    });
 
   } catch (error) {
     console.error('Login error:', error);
@@ -301,14 +346,47 @@ app.use('/api/orders', ordersRouter);
 app.get('/api/auth/session', authenticateToken, async (req, res) => {
   try {
     const user = req.user;
+    
+    // Check if user is a restaurant admin
+    let isRestaurantAdmin = false;
+    let restaurantId = null;
+    
+    // First check if user is an admin in user_type
+    const isAdmin = user.user_type === 'admin';
+    
+    // Check restaurant_admins table
+    const [restaurantAdmins] = await pool.execute(
+      'SELECT * FROM restaurant_admins WHERE user_id = ?',
+      [user.user_id]
+    );
+    
+    if (restaurantAdmins.length > 0) {
+      isRestaurantAdmin = true;
+      restaurantId = restaurantAdmins[0].restaurant_id;
+    } else {
+      // Check restaurant_administrators table as fallback
+      const [restaurantAdministrators] = await pool.execute(
+        'SELECT * FROM restaurant_administrators WHERE user_id = ?',
+        [user.user_id]
+      );
+      
+      if (restaurantAdministrators.length > 0) {
+        isRestaurantAdmin = true;
+        restaurantId = restaurantAdministrators[0].restaurant_id;
+      }
+    }
+    
     res.json({
       user: {
         id: user.user_id,
         email: user.email,
         fullName: `${user.first_name} ${user.last_name}`,
-        studentId: user.student_id,
         phoneNumber: user.phone,
-        userType: user.user_type
+        user_type: user.user_type,
+        role: user.user_type,
+        isAdmin: isAdmin,
+        isRestaurantAdmin: isRestaurantAdmin,
+        restaurant_id: restaurantId
       }
     });
   } catch (error) {
@@ -698,6 +776,51 @@ app.get('/api/users/:userId/orders', async (req, res) => {
       error: 'Failed to fetch user orders',
       details: error.message 
     });
+  }
+});
+
+// Update order payment status
+app.put('/api/orders/:orderId/payment', async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const { is_paid } = req.body;
+    
+    // Validate payment status
+    if (is_paid === undefined) {
+      return res.status(400).json({ error: 'Payment status is required' });
+    }
+    
+    // Check if order exists
+    const [orderResult] = await pool.execute('SELECT * FROM Orders WHERE order_id = ?', [orderId]);
+    
+    if (orderResult.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    // Update order payment status
+    await pool.execute(
+      'UPDATE Orders SET is_paid = ?, updated_at = ? WHERE order_id = ?',
+      [is_paid ? 1 : 0, new Date().toISOString(), orderId]
+    );
+    
+    // Get updated order
+    const [updatedOrder] = await pool.execute(`
+      SELECT o.*, u.first_name, u.last_name
+      FROM Orders o
+      JOIN Users u ON o.user_id = u.user_id
+      WHERE o.order_id = ?
+    `, [orderId]);
+    
+    res.json({
+      id: updatedOrder[0].order_id,
+      status: updatedOrder[0].status,
+      is_paid: Boolean(updatedOrder[0].is_paid),
+      customer: `${updatedOrder[0].first_name} ${updatedOrder[0].last_name}`,
+      updated_at: updatedOrder[0].updated_at || updatedOrder[0].order_time
+    });
+  } catch (error) {
+    console.error('Error updating payment status:', error);
+    res.status(500).json({ error: 'Failed to update payment status' });
   }
 });
 

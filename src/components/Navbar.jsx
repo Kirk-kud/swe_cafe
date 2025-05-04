@@ -1,9 +1,28 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
+  
+  // Debug user information 
+  useEffect(() => {
+    if (user) {
+      console.log("User data in Navbar:", user);
+    }
+  }, [user]);
+  
+  // Check if user is a cafeteria admin
+  // Check multiple possible admin indicators
+  const isCafeteriaAdmin = user && (
+    user.user_type === 'admin' || 
+    user.role === 'admin' || 
+    user.isAdmin === true ||
+    user.isRestaurantAdmin === true || 
+    (user.restaurant_id && user.restaurant_id > 0)
+  );
+  
+  console.log("Is cafeteria admin?", isCafeteriaAdmin);
 
   return (
     <nav>
@@ -20,15 +39,23 @@ const Navbar = () => {
           </li>
           {isAuthenticated && (
             <>
-              <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
-                <Link to="/admin/dashboard">Dashboard</Link>
-              </li>
+              {isCafeteriaAdmin && (
+                <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
+                  <Link to="/admin/dashboard">Dashboard</Link>
+                </li>
+              )}
               <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
                 <Link to="/RestaurantProfiles">Restaurants</Link>
               </li>
-              <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
-                <Link to="/orders">Track Order</Link>
-              </li>
+              {isCafeteriaAdmin ? (
+                <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
+                  <Link to="/admin/cafeteria">Cafeteria Management</Link>
+                </li>
+              ) : (
+                <li className="p-3 hover:text-red-400 rounded-md transition-all cursor-pointer">
+                  <Link to="/orders">Track Order</Link>
+                </li>
+              )}
             </>
           )}
           <div className="flex items-center gap-4">
