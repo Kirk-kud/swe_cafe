@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from "../../context/AuthContext";
 import CafeteriaService from "../../api/cafeteriaService";
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const CafeteriaManagement = () => {
   const [activeTab, setActiveTab] = useState('Menu');
@@ -730,6 +731,34 @@ const CafeteriaManagement = () => {
         </button>
       </div>
       </form>
+    );
+  };
+
+  // Password Input component
+  const PasswordInput = ({ value, onChange, placeholder = "Password" }) => {
+    const [showPassword, setShowPassword] = useState(false);
+    
+    const togglePasswordVisibility = () => {
+      setShowPassword(!showPassword);
+    };
+    
+    return (
+      <div className="password-input-container">
+        <input
+          type={showPassword ? "text" : "password"}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="password-input"
+        />
+        <button
+          type="button"
+          onClick={togglePasswordVisibility}
+          className="password-toggle-btn"
+        >
+          {showPassword ? <FaEyeSlash /> : <FaEye />}
+        </button>
+      </div>
     );
   };
 
