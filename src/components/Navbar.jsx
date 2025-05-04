@@ -17,6 +17,8 @@ const Navbar = () => {
     
     if (user) {
       //console.log("User data in Navbar:", user);
+      //console.log("Permission level:", user.permissionLevel);
+      //console.log("User type:", user.user_type);
     } else {
       console.log("User is null in Navbar");
       // Check if there's data in localStorage that's not being loaded properly
@@ -44,11 +46,12 @@ const Navbar = () => {
   
   // Check if user has full access permission
   const hasFullAccess = user && (
-    user.permissionLevel === 'full_access' || 
-    user.user_type === 'admin' // System admins always have full access
+    // Only users with explicit full_access permission level should see dashboard
+    user.permissionLevel === 'full_access'
   );
   
-  // console.log("Is cafeteria admin?", isCafeteriaAdmin);
+  //console.log("Is cafeteria admin?", isCafeteriaAdmin);
+  //console.log("Has full access?", hasFullAccess);
 
   return (
     <nav>
