@@ -182,7 +182,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
     
     // 6. Generate minimal token
-    const token = jwt.sign({ userId: user.user_id }, process.env.JWT_SECRET || 'your-secret-key', {
+    const token = jwt.sign({ userId: user.user_id }, JWT_SECRET, {
       expiresIn: '24h'
     });
 

@@ -58,13 +58,20 @@ export const AuthProvider = ({ children }) => {
             }
           });
 
+          console.log('Session validation response:', {
+            status: response.status,
+            ok: response.ok
+          });
+
           if (response.ok) {
             const data = await response.json();
+            console.log('Session data received:', data);
             const processedUser = processUserData(data.user);
             setUser(processedUser);
             localStorage.setItem('user', JSON.stringify(processedUser));
           } else {
             // If session is invalid, clear the token and user data
+            console.error('Session validation failed:', await response.text());
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             setUser(null);
